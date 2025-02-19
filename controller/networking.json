@@ -1,0 +1,14 @@
+{
+   "description": "Blender Connector",
+   "version": "v0.0.1",
+   "feagi_settings": {
+     "feagi_url": "http://127.0.0.1",
+     "feagi_api_port": 8000
+  },
+   "agent_settings": {
+      "agent_data_port": 10029,
+      "agent_id": "blender-connector",
+      "agent_type": "embodiment",
+      "compression": true
+   }
+}
