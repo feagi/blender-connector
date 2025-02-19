@@ -16,7 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================
 """
-
+import os
+import bpy
 import threading
 from time import sleep
 from feagi_connector import sensors
@@ -25,6 +26,7 @@ from feagi_connector import retina as retina
 from feagi_connector import pns_gateway as pns
 from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
+
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
@@ -63,7 +65,17 @@ if __name__ == "__main__":
     # args input. First, it will gather all details from your configuration.json. Once it's done,
     # it will read all input args, such as flags. Once it detects flags from the user, it will override
     # the configuration and use the input provided by the user.
-    config = feagi.build_up_from_configuration()
+
+    # blender custom code
+    # if len(sys.argv) == 0:
+    #     sys.argv = ['blender']  # Add a dummy program name
+    if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR': # yep, I was right.
+        current_dir = bpy.path.abspath("//") 
+    else:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+    # blender custom code
+
+    config = feagi.build_up_from_configuration(current_dir)
     feagi_settings = config['feagi_settings'].copy()
     agent_settings = config['agent_settings'].copy()
     default_capabilities = config['default_capabilities'].copy()
