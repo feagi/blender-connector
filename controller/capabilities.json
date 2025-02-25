@@ -1,10 +1,36 @@
 {
-	"capapabilities": {
+	"capabilities": {
 		"input": {
-
+			"gyro": {
+				"0": {
+					"custom_name": "head_RYP",
+					"disabled": false,
+					"feagi_index": 0,
+					"max_value": [
+						0,
+						0,
+						0
+					],
+					"min_value": [
+						0,
+						0,
+						0
+					]
+				}
+			}
 		},
 		"output": {
-
+			"servo": {
+				"0": {
+					"custom_name": "head",
+					"default_value": 0,
+					"disabled": false,
+					"feagi_index": 0,
+					"max_power": 0.05,
+					"max_value": 0.3,
+					"min_value": -0.5
+				}
+			}
 		}
 	}
 }

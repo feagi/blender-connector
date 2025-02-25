@@ -18,6 +18,7 @@ limitations under the License.
 """
 import os
 import bpy
+import sys
 import threading
 from time import sleep
 from feagi_connector import sensors
@@ -47,7 +48,9 @@ def action(obtained_data):
     recieve_servo_position_data = actuators.get_servo_position_data(obtained_data)
 
     if recieve_servo_position_data:
-        pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
+        for feagi_index in recieve_servo_position_data:
+            power = recieve_servo_position_data[feagi_index]
+            starter.change_ryp("ClassicMan_Rigify", "head", (power, 0.0, 0.0)) # hardcoded for now. Only sample
 
     if recieve_servo_data:
         pass  # example output: {0: 0.245, 2: 1.0}
@@ -70,9 +73,12 @@ if __name__ == "__main__":
     # if len(sys.argv) == 0:
     #     sys.argv = ['blender']  # Add a dummy program name
     if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR': # yep, I was right.
-        current_dir = bpy.path.abspath("//") 
+        current_dir = bpy.path.abspath("//")
     else:
         current_dir = os.path.dirname(os.path.abspath(__file__))
+    if current_dir not in sys.path: # Blender trolls
+        sys.path.append(current_dir)
+        import starter # if you restart the controller, it will cause an exception. Needs to figure out why
     # blender custom code
 
     config = feagi.build_up_from_configuration(current_dir)
@@ -107,19 +113,19 @@ if __name__ == "__main__":
 
 
     while True:
-        joint_read = []  # Replace this to read the data for example
-
 
         # The controller will grab the data from FEAGI in real-time
         message_from_feagi = pns.message_from_feagi
         if message_from_feagi: # Verify if the feagi data is not empty
             # Translate from feagi data to human readable data
+            pns.check_genome_status_no_vision(message_from_feagi)
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        # Example to send data to FEAGI. This is basically reading the joint. R
-        message_to_feagi = sensors.create_data_for_feagi('servo_position', capabilities, message_to_feagi,
-                                                         current_data=joint_read, symmetric=True)
+
+        # # Example to send data to FEAGI. This is basically reading the joint. R
+        # message_to_feagi = sensors.create_data_for_feagi('servo_position', capabilities, message_to_feagi,
+        #                                                  current_data=joint_read, symmetric=True)
         # Sends to feagi data
         pns.signals_to_feagi(message_to_feagi, feagi_ipu_channel, agent_settings, feagi_settings)
 
