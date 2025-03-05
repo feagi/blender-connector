@@ -124,10 +124,12 @@ if __name__ == "__main__":
             action(obtained_signals)
 
         # Example to send data to FEAGI. This is basically reading the joint. R
-        # message_to_feagi_local = sensors.create_data_for_feagi('servo_position', capabilities, message_to_feagi,
-        #                                                        current_data=joint_read, symmetric=True)
+        gyro_data = {'0': location_here} # Replace location_here to value of location on neck.
+        # the data should be "{'0': [x,y,z]}"
+        message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
+                                                               current_data=gyro_data, symmetric=True)
         # Sends to feagi data
-        # pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
+        pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
         # Clear data that is created by controller such as sensors
         message_to_feagi.clear()
