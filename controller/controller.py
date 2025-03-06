@@ -28,9 +28,32 @@ from feagi_connector import pns_gateway as pns
 from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
 
-
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
+
+
+def xyz_to_bone(data_position):
+    return data_position // 3
+
+
+def verify_which_xyz(number):
+    fractional_part = number - int(number)
+    if fractional_part == 0:
+        return 0 # x
+    elif abs(fractional_part - 0.33) < 0.01:
+        return 1 # y
+    elif abs(fractional_part - 0.66) < 0.01:
+        return 2 # z
+    else:
+        return None
+
+
+def feagi_index_to_bone(feagi_index):
+    map_translation = {0: "head"}  # An example. We need to find a way to scale this
+    if feagi_index in map_translation:
+        return map_translation[feagi_index]
+    else:
+        return None
 
 
 def action(obtained_data):
@@ -43,22 +66,24 @@ def action(obtained_data):
     obtained_data: dictionary.
     capabilities: dictionary.
     """
-    recieve_motor_data = actuators.get_motor_data(obtained_data)
-    recieve_servo_data = actuators.get_servo_data(obtained_data)
+    # recieve_motor_data = actuators.get_motor_data(obtained_data)
+    # recieve_servo_data = actuators.get_servo_data(obtained_data)
     recieve_servo_position_data = actuators.get_servo_position_data(obtained_data)
 
     if recieve_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
         for feagi_index in recieve_servo_position_data:
-            power = recieve_servo_position_data[feagi_index]
-            starter.change_ryp("ClassicMan_Rigify", "head", (power, 0.0, 0.0)) # hardcoded for now. Only sample
+            movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
+            movement_data[verify_which_xyz(feagi_index / 3)] = recieve_servo_position_data[feagi_index] # will update which index from FEAGI
+            bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
+            if bone_name is not None:
+                starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
 
-    if recieve_servo_data:
-        pass  # example output: {0: 0.245, 2: 1.0}
-
-    if recieve_motor_data: # example output: {0: 0.245, 2: 1.0}
-        pass
-
+    # if recieve_servo_data:
+    #     pass  # example output: {0: 0.245, 2: 1.0}
+    #
+    # if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
+    #     pass
 
 
 if __name__ == "__main__":
@@ -73,14 +98,14 @@ if __name__ == "__main__":
     # blender custom code
     # if len(sys.argv) == 0:
     #     sys.argv = ['blender']  # Add a dummy program name
-    if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR': # yep, I was right.
-        current_dir = bpy.path.abspath("//") 
+    if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR':  # yep, I was right.
+        current_dir = bpy.path.abspath("//")
     else:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-    if current_dir not in sys.path: # Blender trolls
+    if current_dir not in sys.path:  # Blender trolls
         sys.path.append(current_dir)
-        
-        import starter # if you restart the controller, it will cause an exception.
+
+        import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
 
     config = feagi.build_up_from_configuration(current_dir)
@@ -113,28 +138,32 @@ if __name__ == "__main__":
                              args=(default_capabilities, feagi_settings, camera_data['vision'],),
                              daemon=True).start()
 
+
     def feagi_update():
         joint_read = []
 
         # The controller will grab the data from FEAGI in real-time
         message_from_feagi = pns.message_from_feagi
-        if message_from_feagi: # Verify if the feagi data is not empty
+        if message_from_feagi:  # Verify if the feagi data is not empty
             # Translate from feagi data to human readable data
             pns.check_genome_status_no_vision(message_from_feagi)
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
         # Example to send data to FEAGI. This is basically reading the joint. R
-        message_to_feagi_local = sensors.create_data_for_feagi('servo_position', capabilities, message_to_feagi,
-                                                         current_data=joint_read, symmetric=True)
+        # gyro_data = {'0': location_here} # Replace location_here to value of location on neck.
+        # the data should be "{'0': [x,y,z]}"
+        # message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
+        #                                                        current_data=gyro_data, symmetric=True)
         # Sends to feagi data
-        pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
+        # pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
         # Clear data that is created by controller such as sensors
         message_to_feagi.clear()
 
         # cool down everytime
         return feagi_settings['feagi_burst_speed']
+
 
     # Register the timer callback so that it runs periodically without freezing Blender
     bpy.app.timers.register(feagi_update)
