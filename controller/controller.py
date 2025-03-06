@@ -32,6 +32,30 @@ from feagi_connector import feagi_interface as feagi
 camera_data = {"vision": []}  # This will be heavily rely for vision
 
 
+def xyz_to_bone(data_position):
+    return data_position // 3
+
+
+def verify_which_xyz(number):
+    fractional_part = number - int(number)
+    if fractional_part == 0:
+        return 0 # x
+    elif abs(fractional_part - 0.33) < 0.01:
+        return 1 # y
+    elif abs(fractional_part - 0.66) < 0.01:
+        return 2 # z
+    else:
+        return None
+
+
+def feagi_index_to_bone(feagi_index):
+    map_translation = {0: "head"}  # An example. We need to find a way to scale this
+    if feagi_index in map_translation:
+        return map_translation[feagi_index]
+    else:
+        return None
+
+
 def action(obtained_data):
     """
     This is where you can make the robot do something based on FEAGI data. The variable
@@ -42,21 +66,24 @@ def action(obtained_data):
     obtained_data: dictionary.
     capabilities: dictionary.
     """
-    recieve_motor_data = actuators.get_motor_data(obtained_data)
-    recieve_servo_data = actuators.get_servo_data(obtained_data)
+    # recieve_motor_data = actuators.get_motor_data(obtained_data)
+    # recieve_servo_data = actuators.get_servo_data(obtained_data)
     recieve_servo_position_data = actuators.get_servo_position_data(obtained_data)
 
     if recieve_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
         for feagi_index in recieve_servo_position_data:
-            power = recieve_servo_position_data[feagi_index]
-            starter.change_ryp("ClassicMan_Rigify", "head", (power, 0.0, 0.0))  # hardcoded for now. Only sample
+            movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
+            movement_data[verify_which_xyz(feagi_index / 3)] = recieve_servo_position_data[feagi_index] # will update which index from FEAGI
+            bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
+            if bone_name is not None:
+                starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
 
-    if recieve_servo_data:
-        pass  # example output: {0: 0.245, 2: 1.0}
-
-    if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
-        pass
+    # if recieve_servo_data:
+    #     pass  # example output: {0: 0.245, 2: 1.0}
+    #
+    # if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
+    #     pass
 
 
 if __name__ == "__main__":
@@ -124,12 +151,12 @@ if __name__ == "__main__":
             action(obtained_signals)
 
         # Example to send data to FEAGI. This is basically reading the joint. R
-        gyro_data = {'0': location_here} # Replace location_here to value of location on neck.
+        # gyro_data = {'0': location_here} # Replace location_here to value of location on neck.
         # the data should be "{'0': [x,y,z]}"
-        message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
-                                                               current_data=gyro_data, symmetric=True)
+        # message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
+        #                                                        current_data=gyro_data, symmetric=True)
         # Sends to feagi data
-        pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
+        # pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
         # Clear data that is created by controller such as sensors
         message_to_feagi.clear()
