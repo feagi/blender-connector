@@ -19,6 +19,7 @@ limitations under the License.
 import os
 import bpy
 import threading
+import sys
 from time import sleep
 from feagi_connector import sensors
 from feagi_connector import actuators
@@ -26,6 +27,30 @@ from feagi_connector import retina as retina
 from feagi_connector import pns_gateway as pns
 from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
+from dotenv import load_dotenv
+
+# Get the directory of the current file (assuming .env is in the same directory)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(current_dir, ".env")
+
+# Load the .env file from the specified path
+load_dotenv(dotenv_path)
+
+# Get the RUN_ENV variable from the environment, defaulting to "local" if not set
+run_env = os.getenv("RUN_ENV", "local")
+
+# Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
+if run_env == "docker":
+    feagi_opu_port = "30000"
+else:
+    feagi_opu_port = "3000"
+
+# Optionally, override the value from the .env file
+# Or if you want to update the environment with this value:
+os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
+
+print("RUN_ENV:", run_env)
+print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
 
 # Global variable section
@@ -47,15 +72,16 @@ def action(obtained_data):
     recieve_servo_position_data = actuators.get_servo_position_data(obtained_data)
 
     if recieve_servo_position_data:
-        pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
+        # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
+        for feagi_index in recieve_servo_position_data:
+            power = recieve_servo_position_data[feagi_index]
+            starter.change_ryp("ClassicMan_Rigify", "head", (power, 0.0, 0.0))  # hardcoded for now. Only sample
 
     if recieve_servo_data:
         pass  # example output: {0: 0.245, 2: 1.0}
 
-    if recieve_motor_data: # example output: {0: 0.245, 2: 1.0}
+    if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
         pass
-
-
 
 if __name__ == "__main__":
     # Generate runtime dictionary
@@ -69,10 +95,14 @@ if __name__ == "__main__":
     # blender custom code
     # if len(sys.argv) == 0:
     #     sys.argv = ['blender']  # Add a dummy program name
-    if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR': # yep, I was right.
-        current_dir = bpy.path.abspath("//") 
+    if bpy.context.space_data and bpy.context.space_data.type == 'TEXT_EDITOR':  # yep, I was right.
+        current_dir = bpy.path.abspath("//")
     else:
         current_dir = os.path.dirname(os.path.abspath(__file__))
+    if current_dir not in sys.path:  # Blender trolls
+        sys.path.append(current_dir)
+
+        import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
 
     config = feagi.build_up_from_configuration(current_dir)
@@ -106,25 +136,31 @@ if __name__ == "__main__":
                              daemon=True).start()
 
 
-    while True:
-        joint_read = []  # Replace this to read the data for example
-
+    def feagi_update():
+        joint_read = []
 
         # The controller will grab the data from FEAGI in real-time
         message_from_feagi = pns.message_from_feagi
-        if message_from_feagi: # Verify if the feagi data is not empty
+        if message_from_feagi:  # Verify if the feagi data is not empty
             # Translate from feagi data to human readable data
+            pns.check_genome_status_no_vision(message_from_feagi)
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
         # Example to send data to FEAGI. This is basically reading the joint. R
-        message_to_feagi = sensors.create_data_for_feagi('servo_position', capabilities, message_to_feagi,
-                                                         current_data=joint_read, symmetric=True)
+        gyro_data = {'0' :[0,0,1], '1':[0,0,0], '2':[0,0,0]} # Replace location_here to value of location on neck.
+        # the data should be "{'0': [x,y,z]}"
+        message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
+                                                               current_data=gyro_data, symmetric=True)
         # Sends to feagi data
-        pns.signals_to_feagi(message_to_feagi, feagi_ipu_channel, agent_settings, feagi_settings)
+        pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
         # Clear data that is created by controller such as sensors
         message_to_feagi.clear()
 
         # cool down everytime
-        sleep(feagi_settings['feagi_burst_speed'])
+        return feagi_settings['feagi_burst_speed']
+
+
+    # Register the timer callback so that it runs periodically without freezing Blender
+    bpy.app.timers.register(feagi_update)

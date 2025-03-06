@@ -1,5 +1,6 @@
 import bpy
 import os
+import sys
 
 def clear_terminal():
     # Windows uses 'cls', macOS/Linux use 'clear'
@@ -300,9 +301,10 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(0.0, 0.0, 0.0))
 def main():
 
     clear_terminal()
+    # print(sys.executable)
 
     # 1. Print available armatures and bones so you can see the exact names
-    # print_armature_info()
+    #print_armature_info()
 
     # translate entire body
     # move_bone_in_pose_mode("ClassicMan_Rigify", "root", (0.0, 0.0, 0.0))
@@ -330,32 +332,32 @@ def main():
     # rotate_bone_in_pose_mode("ClassicMan_Rigify", "palm.L", (2.0, 2.0, 2.0))
 
     #5. moves multiple bones
-    bone_transforms = {
-        "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.0, 0.0)},
-        "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
-        "foot_ik.L": {"location": (0.0, -0.0, 0.5)},
-        "thigh_ik.L": {"location": (0.0, -0.1, 0.0), "rotation": (0.1, 0.0, 0.0)},
-        "thigh_ik.R": {"location": (0.0, 0.0, 0.1)}
-    }
+    # bone_transforms = {
+    #     "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.0, 0.0)},
+    #     "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
+    #     "foot_ik.L": {"location": (0.0, -0.0, 0.5)},
+    #     "thigh_ik.L": {"location": (0.0, -0.1, 0.0), "rotation": (0.1, 0.0, 0.0)},
+    #     "thigh_ik.R": {"location": (0.0, 0.0, 0.1)}
+    # }
     
-    transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 1 , True)
+    # transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 1 , True)
 
-    bone_transforms = {
-        "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.3, 0.0)},
-        "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
-        "foot_ik.L": {"location": (0.0, -0.4, 0.5)},
-        "thigh_ik.L": {"location": (0.0, 0.1, 0.0), "rotation": (-0.1, 0.4, 0.0)},
-        "thigh_ik.R": {"location": (0.0, 0.0, -0.1)}
-    }
+    # bone_transforms = {
+    #     "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.3, 0.0)},
+    #     "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
+    #     "foot_ik.L": {"location": (0.0, -0.4, 0.5)},
+    #     "thigh_ik.L": {"location": (0.0, 0.1, 0.0), "rotation": (-0.1, 0.4, 0.0)},
+    #     "thigh_ik.R": {"location": (0.0, 0.0, -0.1)}
+    # }
     
-    transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 20 , True)
+    # transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 20 , True)
 
-    #6. reset bone tranformations
-    # reset("ClassicMan_Rigify")
-    # get_bones_with_IK("ClassicMan_Rigify")
-    affected_bones = validate_connected_bone_movement(armature_name="ClassicMan_Rigify", curr_bone_name="")
-    for bone in affected_bones:
-        print(bone)
+    # #6. reset bone tranformations
+    # # reset("ClassicMan_Rigify")
+    # # get_bones_with_IK("ClassicMan_Rigify")
+    # affected_bones = validate_connected_bone_movement(armature_name="ClassicMan_Rigify", curr_bone_name="")
+    # for bone in affected_bones:
+    #     print(bone)
 
 # Entry point
 if __name__ == "__main__":
