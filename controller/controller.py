@@ -30,6 +30,7 @@ from feagi_connector import feagi_interface as feagi
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
+map_translation = {0: "head"}  # An example. We need to find a way to scale this
 
 
 def xyz_to_bone(data_position):
@@ -49,7 +50,6 @@ def verify_which_xyz(number):
 
 
 def feagi_index_to_bone(feagi_index):
-    map_translation = {0: "head"}  # An example. We need to find a way to scale this
     if feagi_index in map_translation:
         return map_translation[feagi_index]
     else:
@@ -78,7 +78,6 @@ def action(obtained_data):
             bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
             if bone_name is not None:
                 starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
-
     # if recieve_servo_data:
     #     pass  # example output: {0: 0.245, 2: 1.0}
     #
@@ -137,6 +136,12 @@ if __name__ == "__main__":
             threading.Thread(target=retina.vision_progress,
                              args=(default_capabilities, feagi_settings, camera_data['vision'],),
                              daemon=True).start()
+
+    for x in capabilities['output']['servo']:
+        feagi_index = x
+        feagi_index_int = int(x)
+        map_translation[feagi_index_int] = capabilities['output']['servo'][feagi_index]['custom_name']
+
 
 
     def feagi_update():
