@@ -258,18 +258,20 @@ def transform_multiple_bones_in_pose_mode(armature_name="MyRig", bone_transforms
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(0.0, 0.0, 0.0)):
+def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(None, None, None)):
     """
     Changes the rotation of a specified bone in pose mode using roll, yaw, and pitch values.
+    This version allows partial updates (e.g., only roll, or only yaw, etc.).
+
     Assumptions:
       - The bone's rotation mode is set to 'XYZ'.
-      - Roll corresponds to rotation about the X-axis,
-      - Yaw corresponds to rotation about the Y-axis,
-      - Pitch corresponds to rotation about the Z-axis.
+      - The tuple new_ryp = (roll, yaw, pitch).
+      - If any element in new_ryp is None, that axis is left unchanged.
+
     Parameters:
         armature_name (str): Name of the armature object.
         bone_name (str): Name of the bone to be rotated.
-        new_ryp (tuple): A tuple of three floats representing (roll, yaw, pitch).
+        new_ryp (tuple): A tuple of three floats (or None) representing (roll, yaw, pitch).
     """
     # Check if the armature exists
     if armature_name not in bpy.data.objects:
@@ -288,13 +290,27 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(0.0, 0.0, 0.0))
 
     bone = armature_obj.pose.bones[bone_name]
 
-    # Set rotation mode to 'XYZ' (if not already set)
+    # Ensure rotation mode is 'XYZ'
     bone.rotation_mode = 'XYZ'
 
-    # Assign the new rotation: roll -> X, yaw -> Y, pitch -> Z
-    bone.rotation_euler = new_ryp
-    print(f"Bone '{bone_name}' in '{armature_name}' set to Roll: {new_ryp[0]}, Yaw: {new_ryp[1]}, Pitch: {new_ryp[2]}")
+    # Get the current rotation
+    current_euler = bone.rotation_euler.copy()
 
+    # Unpack the new roll, yaw, pitch
+    roll, yaw, pitch = new_ryp
+
+    # If any component is None, keep the current value
+    if roll is not None:
+        current_euler.x = roll
+    if yaw is not None:
+        current_euler.y = yaw
+    if pitch is not None:
+        current_euler.z = pitch
+
+    # Assign the updated rotation back to the bone
+    bone.rotation_euler = current_euler
+    
+    # Return to Object mode
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def main():
@@ -324,38 +340,38 @@ def main():
 
 
     #4.rotation
-    # rotate_bone_in_pose_mode("ClassicMan_Rigify", "root", (0.0, 0.0, 0.0))
-    # rotate_bone_in_pose_mode("ClassicMan_Rigify", "hand_ik.L", (0.0, 0.0, 0.0))
-    # rotate_bone_in_pose_mode("ClassicMan_Rigify", "torso", (0.0, 0.0, 0.0))
-    # rotate_bone_in_pose_mode("ClassicMan_Rigify", "palm.L", (2.0, 2.0, 2.0))
+    # change_ryp("ClassicMan_Rigify", "root", (None, 1.0, 2.0))
+    # change_ryp("ClassicMan_Rigify", "hand_ik.R", (1.5, None, 1.1))
+    # change_ryp("ClassicMan_Rigify", "torso", (None, 3.0, None))
+    # change_ryp("ClassicMan_Rigify", "palm.L", (2.0, None, 2.0))
 
     #5. moves multiple bones
-    bone_transforms = {
-        "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.0, 0.0)},
-        "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
-        "foot_ik.L": {"location": (0.0, -0.0, 0.5)},
-        "thigh_ik.L": {"location": (0.0, -0.1, 0.0), "rotation": (0.1, 0.0, 0.0)},
-        "thigh_ik.R": {"location": (0.0, 0.0, 0.1)}
-    }
+    # bone_transforms = {
+    #     "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.0, 0.0)},
+    #     "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
+    #     "foot_ik.L": {"location": (0.0, -0.0, 0.5)},
+    #     "thigh_ik.L": {"location": (0.0, -0.1, 0.0), "rotation": (0.1, 0.0, 0.0)},
+    #     "thigh_ik.R": {"location": (0.0, 0.0, 0.1)}
+    # }
     
-    transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 1 , True)
+    # transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 1 , True)
 
-    bone_transforms = {
-        "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.3, 0.0)},
-        "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
-        "foot_ik.L": {"location": (0.0, -0.4, 0.5)},
-        "thigh_ik.L": {"location": (0.0, 0.1, 0.0), "rotation": (-0.1, 0.4, 0.0)},
-        "thigh_ik.R": {"location": (0.0, 0.0, -0.1)}
-    }
+    # bone_transforms = {
+    #     "hand_ik.R": {"location": (0.5, 0.0, 0.0), "rotation": (0.0, 2.3, 0.0)},
+    #     "upper_arm_ik.R": {"location": (0.0, 0.0, 0.0)},
+    #     "foot_ik.L": {"location": (0.0, -0.4, 0.5)},
+    #     "thigh_ik.L": {"location": (0.0, 0.1, 0.0), "rotation": (-0.1, 0.4, 0.0)},
+    #     "thigh_ik.R": {"location": (0.0, 0.0, -0.1)}
+    # }
     
-    transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 20 , True)
+    # transform_multiple_bones_in_pose_mode("ClassicMan_Rigify", bone_transforms, 20 , True)
 
-    #6. reset bone tranformations
-    # reset("ClassicMan_Rigify")
-    # get_bones_with_IK("ClassicMan_Rigify")
-    affected_bones = validate_connected_bone_movement(armature_name="ClassicMan_Rigify", curr_bone_name="")
-    for bone in affected_bones:
-        print(bone)
+    # #6. reset bone tranformations
+    # # reset("ClassicMan_Rigify")
+    # # get_bones_with_IK("ClassicMan_Rigify")
+    # affected_bones = validate_connected_bone_movement(armature_name="ClassicMan_Rigify", curr_bone_name="")
+    # for bone in affected_bones:
+    #     print(bone)
 
 # Entry point
 if __name__ == "__main__":
