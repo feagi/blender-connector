@@ -46,7 +46,7 @@ Feagi-connector is the library that enables communication with the brain (FEAGI)
 Ultimately, the goal of this project is to build a controller that enables FEAGI to fully control the Blender character, its animations, and the sensors it reads, such as the object's gyroscope and pose, in real time. 
 
 
-
+# Terminology
 Here’s a complete table comparing **Blender** and **Gazebo** terminology for a **robot arm simulation**, covering all possible features.
 
 | **Feature**         | **Blender Term** | **Gazebo Term** |
