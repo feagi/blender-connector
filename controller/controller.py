@@ -27,6 +27,31 @@ from feagi_connector import retina as retina
 from feagi_connector import pns_gateway as pns
 from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
+from dotenv import load_dotenv
+
+# Get the directory of the current file (assuming .env is in the same directory)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(current_dir, ".env")
+
+# Load the .env file from the specified path
+load_dotenv(dotenv_path)
+
+# Get the RUN_ENV variable from the environment, defaulting to "local" if not set
+run_env = os.getenv("RUN_ENV", "local")
+
+# Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
+if run_env == "docker":
+    feagi_opu_port = "30000"
+else:
+    feagi_opu_port = "3000"
+
+# Optionally, override the value from the .env file
+# Or if you want to update the environment with this value:
+os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
+
+print("RUN_ENV:", run_env)
+print("Using FEAGI_OPU_PORT:", feagi_opu_port)
+
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
@@ -83,7 +108,6 @@ def action(obtained_data):
     #
     # if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
     #     pass
-
 
 if __name__ == "__main__":
     # Generate runtime dictionary
@@ -156,7 +180,7 @@ if __name__ == "__main__":
             action(obtained_signals)
 
         # Example to send data to FEAGI. This is basically reading the joint. R
-        # gyro_data = {'0': location_here} # Replace location_here to value of location on neck.
+        gyro_data = {'0' :[0,0,1], '1':[0,0,0], '2':[0,0,0]} # Replace location_here to value of location on neck.
         # the data should be "{'0': [x,y,z]}"
         # message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
         #                                                        current_data=gyro_data, symmetric=True)

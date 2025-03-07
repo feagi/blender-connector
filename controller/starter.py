@@ -1,5 +1,6 @@
 import bpy
 import os
+import sys
 
 def clear_terminal():
     # Windows uses 'cls', macOS/Linux use 'clear'
@@ -316,9 +317,10 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(None, None, Non
 def main():
 
     clear_terminal()
+    # print(sys.executable)
 
     # 1. Print available armatures and bones so you can see the exact names
-    # print_armature_info()
+    #print_armature_info()
 
     # translate entire body
     # move_bone_in_pose_mode("ClassicMan_Rigify", "root", (0.0, 0.0, 0.0))
