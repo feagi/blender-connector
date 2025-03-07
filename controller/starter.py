@@ -136,71 +136,76 @@ def reset(armature_name="MyRig"):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def move_bone_in_pose_mode(armature_name="MyRig", bone_name="root", new_location=(0.0, 0.0, 0.0)):
+def translate_bone(armature_name="MyRig", bone_name="root", new_location=(None, None, None)):
     """
     Moves a specified bone in pose mode.
+    If any element in `new_location` is None, the current location value is retained for that axis.
     """
-    # Check if the armature object exists
     if armature_name not in bpy.data.objects:
         print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
     armature_obj = bpy.data.objects[armature_name]
-
-    # Make the armature the active object
     bpy.context.view_layer.objects.active = armature_obj
-
-    # Switch to Pose Mode
     bpy.ops.object.mode_set(mode='POSE')
 
-    # Check if the bone exists in pose mode
     if bone_name not in armature_obj.pose.bones:
         print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
         return
 
-    # Access the bone in pose mode
     bone = armature_obj.pose.bones[bone_name]
 
-    # Update bone location  
-    bone.location = new_location
-    print(f"Bone '{bone_name}' in '{armature_name}' moved to {new_location}")
+    # Get current location as a vector
+    current_location = bone.location.copy()
+    new_x, new_y, new_z = new_location
 
-    # Switch back to Object Mode (optional)
+    # Update only if a new value is provided
+    if new_x is not None:
+        current_location.x = new_x
+    if new_y is not None:
+        current_location.y = new_y
+    if new_z is not None:
+        current_location.z = new_z
+
+    bone.location = current_location
+    print(f"Bone '{bone_name}' in '{armature_name}' moved to {bone.location}")
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
-
-def scale_bone_in_pose_mode(armature_name="MyRig", bone_name="root", new_scale=(1.0, 1.0, 1.0)):
+def scale_bone(armature_name="MyRig", bone_name="root", new_scale=(None, None, None)):
     """
     Scales a specified bone in pose mode.
-    `new_scale` should be a tuple of 3 floats, e.g. (1.0, 1.2, 0.8).
+    If any element in `new_scale` is None, the current scale value is retained for that axis.
     """
-
-    # 1. Check if the armature object exists
     if armature_name not in bpy.data.objects:
         print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
     armature_obj = bpy.data.objects[armature_name]
-
-    # 2. Make the armature the active object
     bpy.context.view_layer.objects.active = armature_obj
-
-    # 3. Switch to Pose Mode
     bpy.ops.object.mode_set(mode='POSE')
 
-    # 4. Check if the bone exists in pose mode
     if bone_name not in armature_obj.pose.bones:
         print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
         return
 
-    # 5. Access the bone in pose mode
     bone = armature_obj.pose.bones[bone_name]
 
-    # 6. Update the bone's scale
-    bone.scale = new_scale
-    print(f"Bone '{bone_name}' in '{armature_name}' scaled to {new_scale}")
+    # Get current scale as a mutable vector
+    current_scale = bone.scale.copy()
+    new_x, new_y, new_z = new_scale
 
-    # 7. Switch back to Object Mode (optional)
+    # Update only if a new value is provided
+    if new_x is not None:
+        current_scale.x = new_x
+    if new_y is not None:
+        current_scale.y = new_y
+    if new_z is not None:
+        current_scale.z = new_z
+
+    bone.scale = current_scale
+    print(f"Bone '{bone_name}' in '{armature_name}' scaled to {bone.scale}")
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def transform_multiple_bones_in_pose_mode(armature_name="MyRig", bone_transforms=None, frame=None, keyframe=True):
