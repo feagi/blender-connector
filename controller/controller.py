@@ -170,19 +170,19 @@ if __name__ == "__main__":
     def gather_gyro_data(armature):
         gyro_data = {}
         for idx, bone in enumerate(armature.pose.bones):
-            location_values = [bone.location[0], bone.location[1], bone.location[2]]  # Full (x, y, z) location
+            # location_values = [bone.location[0], bone.location[1], bone.location[2]]  # Full (x, y, z) location this will goes to a different cortical area.
             rotation_values = [bone.rotation_euler[0], bone.rotation_euler[1], bone.rotation_euler[2]]  # Full (x, y, z) rotation
-            scale_values    = [bone.scale[0], bone.scale[1], bone.scale[2]]  # Full (x, y, z) scale
+            # scale_values    = [bone.scale[0], bone.scale[1], bone.scale[2]]  # Full (x, y, z) scale # this will goes to a different cortical area.
 
             # Create a dictionary with keys "0", "1", and "2"
-            bone_data = {
-                "0":location_values,
-                "1":rotation_values,
-                "2":scale_values
-            }
-            
+            # bone_data = {
+            #     "0":location_values,
+            #     "1":rotation_values,
+            #     "2":scale_values
+            # }
+
             # Assign this dictionary to the bone's index key (as a string)
-            gyro_data[str(idx)] = bone_data
+            gyro_data[str(idx)] = rotation_values
         return gyro_data
     
 
@@ -201,15 +201,11 @@ if __name__ == "__main__":
         
         gyro_data = gather_gyro_data(armature)
 
-        print("Data being sent to FEAGI (first 3 indexes):")
-        for idx, (key, value) in enumerate(gyro_data.items()):
-            if idx >= 3:
-                break
-            print(f"Index {key}: {value}")
+        # print("Data being sent to FEAGI (first 3 indexes):")
 
         # the data should be "{'0': [x,y,z]} taken care of from gather_gyro_data"
         message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
-                                                                current_data=gyro_data, symmetric=True)
+                                                                current_data=gyro_data, symmetric=True, measure_enable=True)
         # Sends to feagi data
         pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
