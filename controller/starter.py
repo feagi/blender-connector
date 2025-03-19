@@ -264,7 +264,7 @@ def transform_multiple_bones_in_pose_mode(armature_name="MyRig", bone_transforms
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(None, None, None)):
+def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     """
     Changes the rotation of a specified bone in pose mode using roll, yaw, and pitch values.
     This version allows partial updates (e.g., only roll, or only yaw, etc.).
@@ -280,6 +280,8 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=(None, None, Non
         new_ryp (tuple): A tuple of three floats (or None) representing (roll, yaw, pitch).
     """
     # Check if the armature exists
+    if new_ryp is None:
+        new_ryp = [None, None, None]
     if armature_name not in bpy.data.objects:
         print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
