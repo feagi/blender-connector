@@ -29,32 +29,39 @@ from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
 from dotenv import load_dotenv
 
-# Get the directory of the current file (assuming .env is in the same directory)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(current_dir, ".env")
+# # Get the directory of the current file (assuming .env is in the same directory)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# dotenv_path = os.path.join(current_dir, ".env")
+#
 
-# Load the .env file from the specified path
-load_dotenv(dotenv_path)
-
-# Get the RUN_ENV variable from the environment, defaulting to "local" if not set
-run_env = os.getenv("RUN_ENV", "local")
-
-# Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
-if run_env == "docker":
-    feagi_opu_port = "30000"
-else:
-    feagi_opu_port = "3000"
-
-# Optionally, override the value from the .env file
-# Or if you want to update the environment with this value:
-os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
-
-print("RUN_ENV:", run_env)
-print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
+map_translation = {0: "head"}  # An example. We need to find a way to scale this
+
+
+def xyz_to_bone(data_position):
+    return data_position // 3
+
+
+def verify_which_xyz(number):
+    fractional_part = number - int(number)
+    if fractional_part == 0:
+        return 0 # x
+    elif abs(fractional_part - 0.33) < 0.01:
+        return 1 # y
+    elif abs(fractional_part - 0.66) < 0.01:
+        return 2 # z
+    else:
+        return None
+
+
+def feagi_index_to_bone(feagi_index):
+    if feagi_index in map_translation:
+        return map_translation[feagi_index]
+    else:
+        return None
 
 
 def action(obtained_data):
@@ -67,21 +74,23 @@ def action(obtained_data):
     obtained_data: dictionary.
     capabilities: dictionary.
     """
-    recieve_motor_data = actuators.get_motor_data(obtained_data)
-    recieve_servo_data = actuators.get_servo_data(obtained_data)
+    # recieve_motor_data = actuators.get_motor_data(obtained_data)
+    # recieve_servo_data = actuators.get_servo_data(obtained_data)
     recieve_servo_position_data = actuators.get_servo_position_data(obtained_data)
 
     if recieve_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
         for feagi_index in recieve_servo_position_data:
-            power = recieve_servo_position_data[feagi_index]
-            starter.change_ryp("ClassicMan_Rigify", "head", (power, 0.0, 0.0))  # hardcoded for now. Only sample
-
-    if recieve_servo_data:
-        pass  # example output: {0: 0.245, 2: 1.0}
-
-    if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
-        pass
+            movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
+            movement_data[verify_which_xyz(feagi_index / 3)] = recieve_servo_position_data[feagi_index] # will update which index from FEAGI
+            bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
+            if bone_name is not None:
+                starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
+    # if recieve_servo_data:
+    #     pass  # example output: {0: 0.245, 2: 1.0}
+    #
+    # if recieve_motor_data:  # example output: {0: 0.245, 2: 1.0}
+    #     pass
 
 if __name__ == "__main__":
     # Generate runtime dictionary
@@ -101,6 +110,26 @@ if __name__ == "__main__":
         current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:  # Blender trolls
         sys.path.append(current_dir)
+        # Load the .env file from the specified path
+        # current_path = os.path.dirname(os.path.abspath(__file__))
+        dotenv_path = os.path.join(current_dir, ".env")
+        load_dotenv(dotenv_path)
+
+        # Get the RUN_ENV variable from the environment, defaulting to "local" if not set
+        run_env = os.getenv("RUN_ENV", "local")
+
+        # Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
+        if run_env == "docker":
+            feagi_opu_port = "30000"
+        else:
+            feagi_opu_port = "3000"
+
+        # Optionally, override the value from the .env file
+        # Or if you want to update the environment with this value:
+        os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
+
+        print("RUN_ENV:", run_env)
+        print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
         import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
@@ -135,10 +164,32 @@ if __name__ == "__main__":
                              args=(default_capabilities, feagi_settings, camera_data['vision'],),
                              daemon=True).start()
 
+    for x in capabilities['output']['servo']:
+        feagi_index = x
+        feagi_index_int = int(x)
+        map_translation[feagi_index_int] = capabilities['output']['servo'][feagi_index]['custom_name']
+
+
+    def gather_gyro_data(armature):
+        gyro_data = {}
+        for idx, bone in enumerate(armature.pose.bones):
+            # location_values = [bone.location[0], bone.location[1], bone.location[2]]  # Full (x, y, z) location this will goes to a different cortical area.
+            rotation_values = [bone.rotation_euler[0], bone.rotation_euler[1], bone.rotation_euler[2]]  # Full (x, y, z) rotation
+            # scale_values    = [bone.scale[0], bone.scale[1], bone.scale[2]]  # Full (x, y, z) scale # this will goes to a different cortical area.
+
+            # Create a dictionary with keys "0", "1", and "2"
+            # bone_data = {
+            #     "0":location_values,
+            #     "1":rotation_values,
+            #     "2":scale_values
+            # }
+
+            # Assign this dictionary to the bone's index key (as a string)
+            gyro_data[str(idx)] = rotation_values
+        return gyro_data
+    
 
     def feagi_update():
-        joint_read = []
-
         # The controller will grab the data from FEAGI in real-time
         message_from_feagi = pns.message_from_feagi
         if message_from_feagi:  # Verify if the feagi data is not empty
@@ -147,11 +198,17 @@ if __name__ == "__main__":
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        # Example to send data to FEAGI. This is basically reading the joint. R
-        gyro_data = {'0' :[0,0,1], '1':[0,0,0], '2':[0,0,0]} # Replace location_here to value of location on neck.
-        # the data should be "{'0': [x,y,z]}"
+        armature = bpy.data.objects.get("ClassicMan_Rigify")
+        if armature is None:
+            return feagi_settings['feagi_burst_speed']
+        
+        gyro_data = gather_gyro_data(armature)
+
+        # print("Data being sent to FEAGI (first 3 indexes):")
+
+        # the data should be "{'0': [x,y,z]} taken care of from gather_gyro_data"
         message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
-                                                               current_data=gyro_data, symmetric=True)
+                                                                current_data=gyro_data, symmetric=True, measure_enable=True)
         # Sends to feagi data
         pns.signals_to_feagi(message_to_feagi_local, feagi_ipu_channel, agent_settings, feagi_settings)
 
@@ -160,7 +217,6 @@ if __name__ == "__main__":
 
         # cool down everytime
         return feagi_settings['feagi_burst_speed']
-
 
     # Register the timer callback so that it runs periodically without freezing Blender
     bpy.app.timers.register(feagi_update)
