@@ -20,6 +20,7 @@ import os
 import bpy
 import threading
 import sys
+import starter
 from time import sleep
 from feagi_connector import sensors
 from feagi_connector import actuators
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         print("RUN_ENV:", run_env)
         print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
-        import starter  # if you restart the controller, it will cause an exception.
+        #import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
 
     config = feagi.build_up_from_configuration(current_dir)

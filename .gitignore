@@ -168,3 +168,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+controller/ClassicMan.blend1
+controller/ClassicMan.blend
+controller/capabilities.json
+controller/.env
