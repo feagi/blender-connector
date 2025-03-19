@@ -29,28 +29,11 @@ from feagi_connector.version import __version__
 from feagi_connector import feagi_interface as feagi
 from dotenv import load_dotenv
 
-# Get the directory of the current file (assuming .env is in the same directory)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(current_dir, ".env")
+# # Get the directory of the current file (assuming .env is in the same directory)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# dotenv_path = os.path.join(current_dir, ".env")
+#
 
-# Load the .env file from the specified path
-load_dotenv(dotenv_path)
-
-# Get the RUN_ENV variable from the environment, defaulting to "local" if not set
-run_env = os.getenv("RUN_ENV", "local")
-
-# Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
-if run_env == "docker":
-    feagi_opu_port = "30000"
-else:
-    feagi_opu_port = "3000"
-
-# Optionally, override the value from the .env file
-# Or if you want to update the environment with this value:
-os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
-
-print("RUN_ENV:", run_env)
-print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
 
 # Global variable section
@@ -127,6 +110,26 @@ if __name__ == "__main__":
         current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:  # Blender trolls
         sys.path.append(current_dir)
+        # Load the .env file from the specified path
+        # current_path = os.path.dirname(os.path.abspath(__file__))
+        dotenv_path = os.path.join(current_dir, ".env")
+        load_dotenv(dotenv_path)
+
+        # Get the RUN_ENV variable from the environment, defaulting to "local" if not set
+        run_env = os.getenv("RUN_ENV", "local")
+
+        # Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
+        if run_env == "docker":
+            feagi_opu_port = "30000"
+        else:
+            feagi_opu_port = "3000"
+
+        # Optionally, override the value from the .env file
+        # Or if you want to update the environment with this value:
+        os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
+
+        print("RUN_ENV:", run_env)
+        print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
         import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
