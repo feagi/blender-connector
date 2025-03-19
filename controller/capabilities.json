@@ -22,7 +22,7 @@
 		"output": {
 			"servo": {
 				"0": {
-					"custom_name": "head_r",
+					"custom_name": "head",
 					"default_value": 0,
 					"disabled": false,
 					"feagi_index": 0,
@@ -31,7 +31,7 @@
 					"min_value": -0.5
 				},
 				"1": {
-					"custom_name": "head_y",
+					"custom_name": "head",
 					"disabled": false,
 					"max_value": 0.05,
 					"min_value": -0.5,
@@ -40,7 +40,7 @@
 					"default_value": 0.0
 				},
 				"2": {
-					"custom_name": "head_p",
+					"custom_name": "head",
 					"disabled": false,
 					"max_value": 0.05,
 					"min_value": -0.5,
