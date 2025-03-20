@@ -32,13 +32,10 @@ from dotenv import load_dotenv
 # # Get the directory of the current file (assuming .env is in the same directory)
 # current_dir = os.path.dirname(os.path.abspath(__file__))
 # dotenv_path = os.path.join(current_dir, ".env")
-#
-
-
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
-map_translation = {0: "head"}  # An example. We need to find a way to scale this
+map_translation = {0: "root"}  # An example. We need to find a way to scale this
 
 
 def xyz_to_bone(data_position):
@@ -131,8 +128,8 @@ if __name__ == "__main__":
         print("RUN_ENV:", run_env)
         print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
-        import starter  # if you restart the controller, it will cause an exception.
     # blender custom code
+    import starter
 
     config = feagi.build_up_from_configuration(current_dir)
     feagi_settings = config['feagi_settings'].copy()
