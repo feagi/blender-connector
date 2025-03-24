@@ -35,8 +35,18 @@ from dotenv import load_dotenv
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
-map_translation = {0: "root"}  # An example. We need to find a way to scale this
 
+def generate_map_translation(capabilities):
+    translation = {}
+    seen = set()
+    index = 0
+    servo_capabilities = capabilities.get("output", {}).get("servo", {})
+    for key, servo_data in servo_capabilities.items():
+         custom_name = servo_data.get("custom_name", None)
+         if custom_name not in seen:
+             seen.add(custom_name)
+             translation[index] = custom_name
+    return translation
 
 def xyz_to_bone(data_position):
     return data_position // 3
@@ -137,6 +147,8 @@ if __name__ == "__main__":
     default_capabilities = config['default_capabilities'].copy()
     message_to_feagi = config['message_to_feagi'].copy()
     capabilities = config['capabilities'].copy()
+    map_translation = generate_map_translation(capabilities)
+    print("map_translation:", map_translation)
 
     # Simply copying and pasting the code below will do the full work for you. It basically checks
     # and updates the network to ensure that it can connect with FEAGI. If it doesn't find FEAGI,
