@@ -90,7 +90,7 @@ def action(obtained_data):
         for feagi_index in recieve_servo_position_data:
             movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
             movement_data[verify_which_xyz(feagi_index / 3)] = recieve_servo_position_data[feagi_index] # will update which index from FEAGI
-            bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
+            bone_name = feagi_index_to_bone(feagi_index)
             if bone_name is not None:
                 starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
     # if recieve_servo_data:
