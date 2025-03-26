@@ -138,8 +138,12 @@ if __name__ == "__main__":
         print("RUN_ENV:", run_env)
         print("Using FEAGI_OPU_PORT:", feagi_opu_port)
 
-    # blender custom code
-    import starter
+    import importlib
+    try:
+        import starter
+        importlib.reload(starter)   # reload from disk instead of using cached module
+    except ImportError:
+        import starter
 
     config = feagi.build_up_from_configuration(current_dir)
     feagi_settings = config['feagi_settings'].copy()
