@@ -1,1 +1,2 @@
 feagi_connector >= 0.0.37
+python-dotenv==1.0.1
