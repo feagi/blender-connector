@@ -5,11 +5,14 @@ import os
 def generate_capabilities_json(armature_name, output_path):
     """
     Generates a capabilities.json file for the given armature.
+
+    For each bone in the armature, it creates three:
+      - Input 'gyro' entries (each with the bone's name + '_RYP').
+      - Output 'servo' entries (each with the bone's name).
     
-    For each bone in the armature, it creates:
-      - An input 'gyro' entry using the bone's name with a suffix (e.g., '_RYP').
-      - An output 'servo' entry using the bone's name.
-    
+    The indexing is such that for bone 0, the entries are at indices 0, 1, and 2;
+    for bone 1, at 3, 4, and 5; and so on.
+
     Parameters:
         armature_name (str): Name of the armature object in Blender.
         output_path (str): File path where the JSON file will be written.
@@ -34,27 +37,30 @@ def generate_capabilities_json(armature_name, output_path):
     servo_capabilities = {}
 
     # Iterate over all pose bones in the armature.
-    # Each bone is assigned an index which will serve as its feagi_index.
-    for idx, bone in enumerate(armature.pose.bones):
-        # Create the input gyro capability for the bone.
-        gyro_capabilities[str(idx)] = {
-            "custom_name": f"{bone.name}_RYP",  # change naming as needed.
-            "disabled": False,
-            "feagi_index": idx,
-            "max_value": [0, 0, 0],
-            "min_value": [0, 0, 0]
-        }
-        
-        # Create the output servo capability for the bone.
-        servo_capabilities[str(idx)] = {
-            "custom_name": bone.name,
-            "default_value": 0,
-            "disabled": False,
-            "feagi_index": idx,
-            "max_power": 0.05,  # adjust these values as needed.
-            "max_value": 0.5,
-            "min_value": -0.5
-        }
+    # For each bone, create three entries.
+    for bone_index, bone in enumerate(armature.pose.bones):
+        for axis in range(3):
+            final_index = bone_index * 3 + axis
+
+            # Create the input gyro capability for this axis of the bone.
+            gyro_capabilities[str(final_index)] = {
+                "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
+                "disabled": False,
+                "feagi_index": final_index,
+                "max_value": [0, 0, 0],
+                "min_value": [0, 0, 0]
+            }
+            
+            # Create the output servo capability for this axis of the bone.
+            servo_capabilities[str(final_index)] = {
+                "custom_name": bone.name,  # same name for each axis.
+                "default_value": 0,
+                "disabled": False,
+                "feagi_index": final_index,
+                "max_power": 0.05,
+                "max_value": 0.5,
+                "min_value": -0.5
+            }
 
     # Insert our generated entries into the capabilities dictionary.
     capabilities["capabilities"]["input"]["gyro"] = gyro_capabilities

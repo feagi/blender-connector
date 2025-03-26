@@ -32,14 +32,21 @@ from dotenv import load_dotenv
 # # Get the directory of the current file (assuming .env is in the same directory)
 # current_dir = os.path.dirname(os.path.abspath(__file__))
 # dotenv_path = os.path.join(current_dir, ".env")
-#
-
-
 
 # Global variable section
 camera_data = {"vision": []}  # This will be heavily rely for vision
-map_translation = {0: "head"}  # An example. We need to find a way to scale this
 
+def generate_map_translation(capabilities):
+    translation = {}
+    seen = set()
+    index = 0
+    servo_capabilities = capabilities.get("output", {}).get("servo", {})
+    for key, servo_data in servo_capabilities.items():
+         custom_name = servo_data.get("custom_name", None)
+         if custom_name not in seen:
+             seen.add(custom_name)
+             translation[index] = custom_name
+    return translation
 
 def xyz_to_bone(data_position):
     return data_position // 3
@@ -83,7 +90,7 @@ def action(obtained_data):
         for feagi_index in recieve_servo_position_data:
             movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
             movement_data[verify_which_xyz(feagi_index / 3)] = recieve_servo_position_data[feagi_index] # will update which index from FEAGI
-            bone_name = feagi_index_to_bone(xyz_to_bone(feagi_index))
+            bone_name = feagi_index_to_bone(feagi_index)
             if bone_name is not None:
                 starter.change_ryp("ClassicMan_Rigify", bone_name, movement_data)
     # if recieve_servo_data:
@@ -144,6 +151,8 @@ if __name__ == "__main__":
     default_capabilities = config['default_capabilities'].copy()
     message_to_feagi = config['message_to_feagi'].copy()
     capabilities = config['capabilities'].copy()
+    map_translation = generate_map_translation(capabilities)
+    print("map_translation:", map_translation)
 
     # Simply copying and pasting the code below will do the full work for you. It basically checks
     # and updates the network to ensure that it can connect with FEAGI. If it doesn't find FEAGI,
