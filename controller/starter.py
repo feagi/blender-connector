@@ -17,17 +17,17 @@ def print_armature_info():
         else:
             print(f"Object: {obj.name}")
 
-def get_max_translation(armature="MyRig", bone_parent_name="StartBone"):
+def get_max_translation(armature_name="MyRig", bone_parent_name="StartBone"):
     """To ensure that we don't stretch bones too far, we need to find their max length"""
 
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
 
 # 5. Verify if a rigged bone will affect connected bones when moved 
-def validate_connected_bone_movement(armature="MyRig", curr_bone_name="root"):
+def validate_connected_bone_movement(armature_name="MyRig", curr_bone_name="root"):
 
     # if IK: any parent bones in IK chain will move
     # if FK: any children will move
@@ -36,19 +36,19 @@ def validate_connected_bone_movement(armature="MyRig", curr_bone_name="root"):
     affected_bones = []
 
     # validate armature name
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
     # get armature object
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
 
     # 3. Switch to Pose Mode
     bpy.ops.object.mode_set(mode='POSE')
 
     # 4. Check if the bone exists in pose mode
     if curr_bone_name not in armature_obj.pose.bones:
-        print(f"Bone '{curr_bone_name}' not found in armature '{armature}'")
+        print(f"Bone '{curr_bone_name}' not found in armature '{armature_name}'")
         return
 
     # get the bone being moved
@@ -106,7 +106,7 @@ def traverse_children(bone, children_list):
             traverse_children(child, children_list)  
 
 
-def reset(armature="MyRig"):
+def reset(armature_name="MyRig"):
     """
     Resets the translations, rotations, and scales of all bones
     
@@ -115,11 +115,11 @@ def reset(armature="MyRig"):
       - rotation: (0.0, 0.0, 0.0)
       - scale:    (1.0, 1.0, 1.0)
     """
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
     bpy.context.view_layer.objects.active = armature_obj
     bpy.ops.object.mode_set(mode='POSE')
 
@@ -136,21 +136,21 @@ def reset(armature="MyRig"):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def translate_bone(armature="MyRig", bone_name="root", new_location=(None, None, None)):
+def translate_bone(armature_name="MyRig", bone_name="root", new_location=(None, None, None)):
     """
     Moves a specified bone in pose mode.
     If any element in `new_location` is None, the current location value is retained for that axis.
     """
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
     bpy.context.view_layer.objects.active = armature_obj
     bpy.ops.object.mode_set(mode='POSE')
 
     if bone_name not in armature_obj.pose.bones:
-        print(f"Bone '{bone_name}' not found in armature '{armature}'")
+        print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
         return
 
     bone = armature_obj.pose.bones[bone_name]
@@ -168,25 +168,25 @@ def translate_bone(armature="MyRig", bone_name="root", new_location=(None, None,
         current_location.z = new_z
 
     bone.location = current_location
-    print(f"Bone '{bone_name}' in '{armature}' moved to {bone.location}")
+    print(f"Bone '{bone_name}' in '{armature_name}' moved to {bone.location}")
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def scale_bone(armature="MyRig", bone_name="root", new_scale=(None, None, None)):
+def scale_bone(armature_name="MyRig", bone_name="root", new_scale=(None, None, None)):
     """
     Scales a specified bone in pose mode.
     If any element in `new_scale` is None, the current scale value is retained for that axis.
     """
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
     bpy.context.view_layer.objects.active = armature_obj
     bpy.ops.object.mode_set(mode='POSE')
 
     if bone_name not in armature_obj.pose.bones:
-        print(f"Bone '{bone_name}' not found in armature '{armature}'")
+        print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
         return
 
     bone = armature_obj.pose.bones[bone_name]
@@ -204,17 +204,17 @@ def scale_bone(armature="MyRig", bone_name="root", new_scale=(None, None, None))
         current_scale.z = new_z
 
     bone.scale = current_scale
-    print(f"Bone '{bone_name}' in '{armature}' scaled to {bone.scale}")
+    print(f"Bone '{bone_name}' in '{armature_name}' scaled to {bone.scale}")
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def transform_multiple_bones_in_pose_mode(armature="MyRig", bone_transforms=None, frame=None, keyframe=True):
+def transform_multiple_bones_in_pose_mode(armature_name="MyRig", bone_transforms=None, frame=None, keyframe=True):
     """
     Transforms multiple bones simultaneously in pose mode.
     For each bone provided, you can specify a new location and/or a new rotation.
     
     Parameters:
-        armature (str): Name of the armature object.
+        armature_name (str): Name of the armature object.
         bone_transforms (dict): A dictionary where each key is a bone name (str) and its
                                 value is another dictionary that can include:
                                   - "location": A tuple (x, y, z)
@@ -224,11 +224,11 @@ def transform_multiple_bones_in_pose_mode(armature="MyRig", bone_transforms=None
         print("No bone transforms provided.")
         return
 
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
     bpy.context.view_layer.objects.active = armature_obj
     bpy.ops.object.mode_set(mode='POSE')
 
@@ -237,7 +237,7 @@ def transform_multiple_bones_in_pose_mode(armature="MyRig", bone_transforms=None
 
     for bone_name, transforms in bone_transforms.items():
         if bone_name not in armature_obj.pose.bones:
-            print(f"Bone '{bone_name}' not found in armature '{armature}'")
+            print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
             continue
 
         bone = armature_obj.pose.bones[bone_name]
@@ -264,7 +264,7 @@ def transform_multiple_bones_in_pose_mode(armature="MyRig", bone_transforms=None
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def change_ryp(armature="MyRig", bone_name="root", new_ryp=None):
+def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     """
     Changes the rotation of a specified bone in pose mode using roll, yaw, and pitch values.
     This version allows partial updates (e.g., only roll, or only yaw, etc.).
@@ -275,24 +275,24 @@ def change_ryp(armature="MyRig", bone_name="root", new_ryp=None):
       - If any element in new_ryp is None, that axis is left unchanged.
 
     Parameters:
-        armature (str): Name of the armature object.
+        armature_name (str): Name of the armature object.
         bone_name (str): Name of the bone to be rotated.
         new_ryp (tuple): A tuple of three floats (or None) representing (roll, yaw, pitch).
     """
     # Check if the armature exists
     if new_ryp is None:
         new_ryp = [None, None, None]
-    if armature not in bpy.data.objects:
-        print(f"Armature '{armature}' not found in bpy.data.objects")
+    if armature_name not in bpy.data.objects:
+        print(f"Armature '{armature_name}' not found in bpy.data.objects")
         return
 
-    armature_obj = bpy.data.objects[armature]
+    armature_obj = bpy.data.objects[armature_name]
     bpy.context.view_layer.objects.active = armature_obj
     bpy.ops.object.mode_set(mode='POSE')
 
     # Check if the bone exists in pose mode
     if bone_name not in armature_obj.pose.bones:
-        print(f"Bone '{bone_name}' not found in armature '{armature}'")
+        print(f"Bone '{bone_name}' not found in armature '{armature_name}'")
         bpy.ops.object.mode_set(mode='OBJECT')
         return
 
@@ -334,14 +334,14 @@ def get_property_type(data_path):
     else:
         return "Other"
 
-def keyframe_selected_bones(armature = "MyRig",current_frame = 0):
-    armature = bpy.data.objects.get(armature)
+def keyframe_selected_bones(armature_name = "MyRig",current_frame = 0):
+    armature = bpy.data.objects.get(armature_name)
 
     if not armature:
         print(f"Armature '{armature}' not found.")
         return
 
-    if armature.type != 'ARMATURE':
+    if armature_name.type != 'ARMATURE':
         print(f"'{armature}' is not an armature.")
         return
 
@@ -354,8 +354,8 @@ def keyframe_selected_bones(armature = "MyRig",current_frame = 0):
             bone.keyframe_insert(data_path="scale", frame=current_frame)
 
 
-def keyframe_full_armature(armature = "MyRig",current_frame = 0):
-    armature = bpy.data.objects.get(armature)
+def keyframe_full_armature(armature_name = "MyRig",current_frame = 0):
+    armature = bpy.data.objects.get(armature_name)
 
     if not armature:
         print(f"Armature '{armature}' not found.")
@@ -397,17 +397,17 @@ def print_all_keyframes():
                 print(f"  {prop_type}: {sorted(frames)}")
     print("Printed all Keyframes.")
 
-def clear_armature_keyframe(armature = "MyRig"):
-    obj = bpy.data.objects.get(armature)
+def clear_armature_keyframe(armature_name = "MyRig"):
+    obj = bpy.data.objects.get(armature_name)
 
     if not obj:
-        print(f"Object '{armature}' not found.")
+        print(f"Object '{armature_name}' not found.")
         return
 
     if obj.animation_data:
         action = obj.animation_data.action
         if action:
-            print(f"Clearing keyframes and unlinking action from '{armature}'...")
+            print(f"Clearing keyframes and unlinking action from '{armature_name}'...")
 
             # Clear fcurves (animation data)
             action.fcurves.clear()
