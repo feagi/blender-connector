@@ -321,9 +321,121 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     # Return to Object mode
     bpy.ops.object.mode_set(mode='OBJECT')
 
+def get_property_type(data_path):
+#takes data path to return string of keyframe type
+    if "location" in data_path:
+        return "Location"
+    elif "scale" in data_path:
+        return "Scale"
+    elif "rotation_quaternion" in data_path:
+        return "Rotation (Quaternion)"
+    elif "rotation_euler" in data_path:
+        return "Rotation (Euler)"
+    else:
+        return "Other"
+
+def keyframe_selected_bones(armature_name = "MyRig",current_frame = 0):
+    armature = bpy.data.objects.get(armature_name)
+
+    if not armature:
+        print(f"Armature '{armature}' not found.")
+        return
+
+    if armature_name.type != 'ARMATURE':
+        print(f"'{armature}' is not an armature.")
+        return
+
+    pose_bones = armature.pose.bones
+
+    for bone in pose_bones:
+        if bone.bone.select:
+            bone.keyframe_insert(data_path="location", frame=current_frame)
+            bone.keyframe_insert(data_path="rotation_euler", frame=current_frame)
+            bone.keyframe_insert(data_path="scale", frame=current_frame)
+
+
+def keyframe_full_armature(armature_name = "MyRig",current_frame = 0):
+    armature = bpy.data.objects.get(armature_name)
+
+    if not armature:
+        print(f"Armature '{armature}' not found.")
+        return
+
+    if armature.type != 'ARMATURE':
+        print(f"'{armature}' is not an armature.")
+        return
+
+    pose_bones = armature.pose.bones
+
+    for bone in pose_bones:
+        bone.keyframe_insert(data_path="location", frame=current_frame)
+        bone.keyframe_insert(data_path="rotation_euler", frame=current_frame)
+        bone.keyframe_insert(data_path="scale", frame=current_frame)
+
+def print_all_keyframes():
+    for obj in bpy.context.scene.objects:
+        keyframe_dict = {}
+        if obj.type == 'ARMATURE' and obj.animation_data and obj.animation_data.action:
+            action = obj.animation_data.action
+            for fcurve in action.fcurves:
+                data_path = fcurve.data_path
+                bone_name = data_path.split('"')[1] if '"' in data_path else "unknown"
+                property_type = get_property_type(data_path)
+            
+                if bone_name not in keyframe_dict:
+                    keyframe_dict[bone_name] = {}
+            
+                if property_type not in keyframe_dict[bone_name]:
+                    keyframe_dict[bone_name][property_type] = set()
+
+                for keyframe in fcurve.keyframe_points:
+                    keyframe_dict[bone_name][property_type].add(int(keyframe.co.x))
+
+        for bone, prop_dict in keyframe_dict.items():
+            print(f"Bone: {bone}")
+            for prop_type, frames in prop_dict.items():
+                print(f"  {prop_type}: {sorted(frames)}")
+    print("Printed all Keyframes.")
+
+def clear_armature_keyframe(armature_name = "MyRig"):
+    obj = bpy.data.objects.get(armature_name)
+
+    if not obj:
+        print(f"Object '{armature_name}' not found.")
+        return
+
+    if obj.animation_data:
+        action = obj.animation_data.action
+        if action:
+            print(f"Clearing keyframes and unlinking action from '{armature_name}'...")
+
+            # Clear fcurves (animation data)
+            action.fcurves.clear()
+
+            # Unlink the action
+            obj.animation_data.action = None
+
+def clear_all_keyframes():
+    for obj in bpy.context.scene.objects:
+        if obj.animation_data:
+            action = obj.animation_data.action
+            if action:
+                # Clear fcurves (animation data)
+                action.fcurves.clear()
+
+                # Unlink the action
+                obj.animation_data.action = None
+    print("Cleared all Armatures")
+
 def main():
 
     clear_terminal()
+    #clear_armature_keyframe("ClassicMan_Rigify")
+    #print_all_keyframes()
+    #keyframe_full_armature("ClassicMan_Rigify",1)
+    #keyframe_selected_bones("ClassicMan_Rigify",20)
+    #print_all_keyframes()
+
     # print(sys.executable)
 
     # 1. Print available armatures and bones so you can see the exact names
@@ -378,7 +490,7 @@ def main():
     # #6. reset bone tranformations
     # # reset("ClassicMan_Rigify")
     # # get_bones_with_IK("ClassicMan_Rigify")
-    # affected_bones = validate_connected_bone_movement(armature_name="ClassicMan_Rigify", curr_bone_name="")
+    # affected_bones = validate_connected_bone_movement(armature="ClassicMan_Rigify", curr_bone_name="")
     # for bone in affected_bones:
     #     print(bone)
 
