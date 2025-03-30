@@ -1,6 +1,45 @@
 import bpy 
 import json
 import os 
+import math
+
+def compute_bone_length(bone):
+    """
+    Computes the length of a bone using its head and tail coordinates.
+    Parameters:
+        bone: A Blender pose bone.
+        
+    Returns:
+        float: The computed length of the bone.
+    """
+    head = bone.bone.head  # (x, y, z) coordinates
+    tail = bone.bone.tail
+    dx = tail[0] - head[0]
+    dy = tail[1] - head[1]
+    dz = tail[2] - head[2]
+    return math.sqrt(dx*dx + dy*dy + dz*dz)
+
+def compute_gyro_range(bone):
+    """
+    Computes a custom gyro range to the bone's length.
+    
+    Parameters:
+        bone: A Blender pose bone.
+        
+    Returns:
+        dict: A dictionary with keys "max_value" and "min_value".
+    """
+
+    length = compute_bone_length(bone)
+    k = 1.0  # Adjust this constant to scale the dynamic range as needed.
+    
+    # Avoid division by zero by setting a minimum length value.
+    if length < 1e-6:
+        dynamic_range = k  # Or some default value.
+    else:
+        dynamic_range = k / length
+        
+    return {"max_value": dynamic_range, "min_value": -dynamic_range} 
 
 def generate_capabilities_json(armature_name, output_path):
     """
@@ -39,6 +78,7 @@ def generate_capabilities_json(armature_name, output_path):
     # Iterate over all pose bones in the armature.
     # For each bone, create three entries.
     for bone_index, bone in enumerate(armature.pose.bones):
+        gyro_range = compute_gyro_range(bone)
         for axis in range(3):
             final_index = bone_index * 3 + axis
 
@@ -47,8 +87,8 @@ def generate_capabilities_json(armature_name, output_path):
                 "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
                 "disabled": False,
                 "feagi_index": final_index,
-                "max_value": [0, 0, 0],
-                "min_value": [0, 0, 0]
+                "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
+                "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
             }
             
             # Create the output servo capability for this axis of the bone.
