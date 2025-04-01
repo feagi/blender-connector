@@ -41,6 +41,28 @@ def compute_gyro_range(bone):
         
     return {"max_value": dynamic_range, "min_value": -dynamic_range} 
 
+def compute_servo_range(bone):
+    """
+    Computes a custom gyro range to the bone's length.
+    
+    Parameters:
+        bone: A Blender pose bone.
+        
+    Returns:
+        dict: A dictionary with keys "max_value" and "min_value".
+    """
+
+    length = compute_bone_length(bone)
+    k = 0.5  # Adjust this constant to scale the dynamic range as needed.
+    
+    # Avoid division by zero by setting a minimum length value.
+    if length < 1e-6:
+        dynamic_range = k  # Or some default value.
+    else:
+        dynamic_range = k / length
+        
+    return {"max_value": dynamic_range, "min_value": -dynamic_range} 
+
 def generate_capabilities_json(armature_name, output_path):
     """
     Generates a capabilities.json file for the given armature.
@@ -79,6 +101,7 @@ def generate_capabilities_json(armature_name, output_path):
     # For each bone, create three entries.
     for bone_index, bone in enumerate(armature.pose.bones):
         gyro_range = compute_gyro_range(bone)
+        servo_range = compute_servo_range(bone)
         for axis in range(3):
             final_index = bone_index * 3 + axis
 
@@ -98,8 +121,8 @@ def generate_capabilities_json(armature_name, output_path):
                 "disabled": False,
                 "feagi_index": final_index,
                 "max_power": 0.05,
-                "max_value": 0.5,
-                "min_value": -0.5
+                "max_value": servo_range["max_value"],
+                "min_value": servo_range["min_value"]
             }
 
     # Insert our generated entries into the capabilities dictionary.
