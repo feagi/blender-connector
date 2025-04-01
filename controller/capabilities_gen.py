@@ -31,7 +31,7 @@ def compute_gyro_range(bone):
     """
 
     length = compute_bone_length(bone)
-    k = 1.0  # Adjust this constant to scale the dynamic range as needed.
+    k = 0.5  # Adjust this constant to scale the dynamic range as needed.
     
     # Avoid division by zero by setting a minimum length value.
     if length < 1e-6:
@@ -99,20 +99,12 @@ def generate_capabilities_json(armature_name, output_path):
 
     # Iterate over all pose bones in the armature.
     # For each bone, create three entries.
+    feagi_index_for_gyro = 0
     for bone_index, bone in enumerate(armature.pose.bones):
         gyro_range = compute_gyro_range(bone)
         servo_range = compute_servo_range(bone)
         for axis in range(3):
             final_index = bone_index * 3 + axis
-
-            # Create the input gyro capability for this axis of the bone.
-            gyro_capabilities[str(final_index)] = {
-                "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
-                "disabled": False,
-                "feagi_index": final_index,
-                "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
-                "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
-            }
             
             # Create the output servo capability for this axis of the bone.
             servo_capabilities[str(final_index)] = {
@@ -124,6 +116,17 @@ def generate_capabilities_json(armature_name, output_path):
                 "max_value": servo_range["max_value"],
                 "min_value": servo_range["min_value"]
             }
+
+        # Temp workaround, TODO: Fix Feagi connector on gyro overlapping
+        # Create the input gyro capability for this axis of the bone.
+        gyro_capabilities[str(bone_index)] = {
+            "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
+            "disabled": False,
+            "feagi_index": feagi_index_for_gyro,
+            "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
+            "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
+        }
+        feagi_index_for_gyro += 3
 
     # Insert our generated entries into the capabilities dictionary.
     capabilities["capabilities"]["input"]["gyro"] = gyro_capabilities
