@@ -17,6 +17,28 @@ def print_armature_info():
         else:
             print(f"Object: {obj.name}")
 
+def get_all_armature_names():
+    """stores all armature names in list removing duplicates (not yet)"""
+    armature_names = []
+    metarig_names = []
+
+    for obj in bpy.data.objects:
+        if obj.type == 'ARMATURE':
+            if "_Rigify" in obj.name:                       # check if armature is Rigify
+                
+                rig_idx = obj.name.index("_Rigify")         # get index of _Rigify postfix
+                metarig_name = obj.name[0:rig_idx]          # get metarig substring
+                metarig_names.append(metarig_name)          # add metarig name to metarig list
+                armature_names.append(obj.name)             # add rigify name to armature list
+            else:
+                armature_names.append(obj.name)
+        
+        for metarig in metarig_names:                       # iterate through list of metarig names
+            if metarig in armature_names:                   # remove if in armature list
+                armature_names.remove(metarig)
+    return armature_names
+
+
 def get_max_translation(armature_name="MyRig", bone_parent_name="StartBone"):
     """To ensure that we don't stretch bones too far, we need to find their max length"""
 
@@ -322,7 +344,7 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def main():
-
+    
     clear_terminal()
     # print(sys.executable)
 
