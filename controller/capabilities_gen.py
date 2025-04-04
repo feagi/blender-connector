@@ -152,7 +152,7 @@ def generate_capabilities_json(armature_names, output_path):
                     "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
                     "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
                 }
-                feagi_index_for_gyro += 3
+            feagi_index_for_gyro += 3 # temp.....zzz
 
             cont_index+=1
 
