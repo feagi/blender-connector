@@ -120,44 +120,46 @@ def generate_capabilities_json(armature_names, output_path):
         if not armature or armature.type != 'ARMATURE':
             print(f"Armature '{armature_name}' not found or is not an armature")
             return
-
-    gyro_capabilities = {}
-    servo_capabilities = {}
+        
+        gyro_capabilities = {}
+        servo_capabilities = {}
     
-    # Iterate over all pose bones in the armature.
-    # For each bone, create three entries.
-    feagi_index_for_gyro = 0
-    for bone_index, bone in enumerate(armature.pose.bones):
-        gyro_range = compute_gyro_range(bone)
-        servo_range = compute_servo_range(bone)
-        for axis in range(3):
-            final_index = bone_index * 3 + axis
-            
-            # Create the output servo capability for this axis of the bone.
-            servo_capabilities[str(final_index)] = {
-                "custom_name": bone.name,  # same name for each axis.
-                "default_value": 0,
-                "disabled": False,
-                "feagi_index": final_index,
-                "max_power": 0.05,
-                "max_value": servo_range["max_value"],
-                "min_value": servo_range["min_value"]
-            }
+        # Iterate over all pose bones in the armature.
+        # For each bone, create three entries.
+        feagi_index_for_gyro = 0
+        for bone_index, bone in enumerate(armature.pose.bones):
+            gyro_range = compute_gyro_range(bone)
+            servo_range = compute_servo_range(bone)
+            for axis in range(3):
+                final_index = cont_index * 3 + axis
+                
+                # Create the output servo capability for this axis of the bone.
+                servo_capabilities[str(final_index)] = {
+                    "custom_name": bone.name,  # same name for each axis.
+                    "default_value": 0,
+                    "disabled": False,
+                    "feagi_index": final_index,
+                    "max_power": 0.05,
+                    "max_value": servo_range["max_value"],
+                    "min_value": servo_range["min_value"]
+                }
 
-        # Temp workaround, TODO: Fix Feagi connector on gyro overlapping
-        # Create the input gyro capability for this axis of the bone.
-        gyro_capabilities[str(bone_index)] = {
-            "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
-            "disabled": False,
-            "feagi_index": feagi_index_for_gyro,
-            "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
-            "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
-        }
-        feagi_index_for_gyro += 3
+                # Temp workaround, TODO: Fix Feagi connector on gyro overlapping
+                # Create the input gyro capability for this axis of the bone.
+                gyro_capabilities[str(bone_index)] = {
+                    "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
+                    "disabled": False,
+                    "feagi_index": feagi_index_for_gyro,
+                    "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
+                    "min_value": [gyro_range["min_value"], gyro_range["min_value"], gyro_range["min_value"]]
+                }
+                feagi_index_for_gyro += 3
 
-    # Insert our generated entries into the capabilities dictionary.
-    capabilities["capabilities"]["input"]["gyro"] = gyro_capabilities
-    capabilities["capabilities"]["output"]["servo"] = servo_capabilities
+            cont_index+=1
+
+        # Insert our generated entries into the capabilities dictionary.
+        capabilities["capabilities"]["input"]["gyro"].update(gyro_capabilities)
+        capabilities["capabilities"]["output"]["servo"].update(servo_capabilities)
 
     # Write the JSON data to the specified file.
     with open(output_path, "w") as outfile:
