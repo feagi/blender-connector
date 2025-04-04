@@ -322,7 +322,7 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def main():
-
+    
     clear_terminal()
     # print(sys.executable)
 
