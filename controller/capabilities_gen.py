@@ -1,6 +1,6 @@
 import bpy 
 import json
-import os
+import os 
 import math
 
 def compute_bone_length(bone):
@@ -62,7 +62,6 @@ def compute_servo_range(bone):
         dynamic_range = k / length
         
     return {"max_value": dynamic_range, "min_value": -dynamic_range} 
-
 
 def get_all_armature_names():
     """stores all armature names in list removing duplicates (not yet)"""
