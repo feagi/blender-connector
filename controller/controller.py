@@ -88,6 +88,7 @@ def action(obtained_data):
     if receive_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
         for feagi_index in receive_servo_position_data:
+            starter.get_name_and_update_index(starter.get_all_armature_names())
             movement_data = [None, None, None]  # initialize the ryp. If the index is none, it should be skipped.
             movement_data[verify_which_xyz(feagi_index / 3)] = receive_servo_position_data[feagi_index] # will update which index from FEAGI
             bone_name = feagi_index_to_bone(feagi_index)

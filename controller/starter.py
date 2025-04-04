@@ -321,6 +321,17 @@ def change_ryp(armature_name="MyRig", bone_name="root", new_ryp=None):
     # Return to Object mode
     bpy.ops.object.mode_set(mode='OBJECT')
 
+def get_name_and_update_index(armature_names):
+    model_list = {}
+    for armature_name in armature_names:
+        armature = bpy.data.objects.get(armature_name)
+        print(f"Current armature:{armature_name}")
+        if not armature or armature.type != 'ARMATURE':
+            print(f"Armature '{armature_name}' not found or is not an armature")
+            return
+        model_list[armature_name] = len(armature.pose.bones)
+    print(model_list)
+
 def main():
     
     clear_terminal()
