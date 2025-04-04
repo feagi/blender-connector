@@ -344,6 +344,9 @@ def keyframe_selected_bones(armature_name = "MyRig",current_frame = 0):
     if armature_name.type != 'ARMATURE':
         print(f"'{armature}' is not an armature.")
         return
+    
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.mode_set(mode='POSE')
 
     pose_bones = armature.pose.bones
 
@@ -352,6 +355,8 @@ def keyframe_selected_bones(armature_name = "MyRig",current_frame = 0):
             bone.keyframe_insert(data_path="location", frame=current_frame)
             bone.keyframe_insert(data_path="rotation_euler", frame=current_frame)
             bone.keyframe_insert(data_path="scale", frame=current_frame)
+    marker_name = f"Keyframe {current_frame}"
+    bpy.context.scene.timeline_markers.new(marker_name, frame=current_frame)
 
 
 def keyframe_full_armature(armature_name = "MyRig",current_frame = 0):
@@ -371,6 +376,8 @@ def keyframe_full_armature(armature_name = "MyRig",current_frame = 0):
         bone.keyframe_insert(data_path="location", frame=current_frame)
         bone.keyframe_insert(data_path="rotation_euler", frame=current_frame)
         bone.keyframe_insert(data_path="scale", frame=current_frame)
+    marker_name = f"Keyframe {current_frame}"
+    bpy.context.scene.timeline_markers.new(marker_name, frame=current_frame)
 
 def print_all_keyframes():
     for obj in bpy.context.scene.objects:
@@ -427,14 +434,107 @@ def clear_all_keyframes():
                 obj.animation_data.action = None
     print("Cleared all Armatures")
 
+def reset_armature(armature_name = "MyRig"):
+    obj = bpy.data.objects.get(armature_name)
+
+    if obj and obj.type == 'ARMATURE':
+        bpy.context.view_layer.objects.active = obj  # make it active
+        bpy.ops.object.mode_set(mode='POSE')         # switch to Pose Mode
+        bpy.ops.pose.select_all(action='SELECT')     # select all bones
+        bpy.ops.pose.transforms_clear()       # clear location, rotation, and scale
+        print(f"Pose reset to rest position for '{armature_name}'.")
+    else:
+        print("Armature not found")
+
+def print_keyframe(current_frame = 0):
+    bpy.context.scene.frame_set(current_frame)
+
+    for obj in bpy.context.scene.objects:
+        if obj.type != 'ARMATURE' or not obj.animation_data or not obj.animation_data.action:
+            continue
+
+        action = obj.animation_data.action
+        keyed_bones = {}
+
+        for fcurve in action.fcurves:
+            data_path = fcurve.data_path
+            property_type = get_property_type(data_path)
+
+            if not property_type or '"' not in data_path:
+                continue
+
+            bone_name = data_path.split('"')[1]
+
+            for kf in fcurve.keyframe_points:
+                if int(kf.co.x) == current_frame:
+                    if bone_name not in keyed_bones:
+                        keyed_bones[bone_name] = set()
+                    keyed_bones[bone_name].add(property_type)
+
+        if keyed_bones:
+            print(f"\nArmature: {obj.name} \nAt keyframe on frame: {current_frame}")
+            for bone_name in keyed_bones:
+                bone = obj.pose.bones.get(bone_name)
+                if not bone:
+                    continue
+
+                loc = bone.location
+                rot = bone.rotation_euler
+                scl = bone.scale
+
+                print(f"  Bone: {bone.name}")
+                print(f"    Location: ({loc.x:.3f}, {loc.y:.3f}, {loc.z:.3f})")
+                print(f"    Rotation (Euler): ({rot.x:.3f}, {rot.y:.3f}, {rot.z:.3f})")
+                print(f"    Scale: ({scl.x:.3f}, {scl.y:.3f}, {scl.z:.3f})")
+
+def get_keyed_bones(current_frame = 0):
+    bpy.context.scene.frame_set(current_frame)
+    result = {}
+    for obj in bpy.context.scene.objects:
+        if obj.type != 'ARMATURE' or not obj.animation_data or not obj.animation_data.action:
+            continue
+
+        action = obj.animation_data.action
+        keyed_bones = {}
+
+        for fcurve in action.fcurves:
+            data_path = fcurve.data_path
+            property_type = get_property_type(data_path)
+
+            if not property_type or '"' not in data_path:
+                continue
+
+            bone_name = data_path.split('"')[1]
+
+            for kf in fcurve.keyframe_points:
+                if int(kf.co.x) == current_frame:
+                    if bone_name not in keyed_bones:
+                        keyed_bones[bone_name] = set()
+                    keyed_bones[bone_name].add(property_type)
+
+        if keyed_bones:
+            print(f"\nArmature: {obj.name}")
+            for bone, props in keyed_bones.items():
+                print(f"  Bone: {bone}")
+                print(f"    Keyed: {', '.join(sorted(props))}")
+            result.update(keyed_bones)
+
+        return result
+
+
+
 def main():
 
     clear_terminal()
-    #clear_armature_keyframe("ClassicMan_Rigify")
-    #print_all_keyframes()
-    #keyframe_full_armature("ClassicMan_Rigify",1)
-    #keyframe_selected_bones("ClassicMan_Rigify",20)
-    #print_all_keyframes()
+    # clear_armature_keyframe("ClassicMan_Rigify")
+    # print_all_keyframes()
+    # reset_armature()
+    # keyframe_full_armature("ClassicMan_Rigify",1)
+    # keyframe_selected_bones("ClassicMan_Rigify",20)
+    # print_keyframe(20)
+    # print_all_keyframes()
+    #bones = get_keyed_bones(20)
+    #print("\nReturned list of keyed bones:", bones)
 
     # print(sys.executable)
 
