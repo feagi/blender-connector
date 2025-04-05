@@ -29,7 +29,6 @@ def compute_gyro_range(bone):
     Returns:
         dict: A dictionary with keys "max_value" and "min_value".
     """
-
     length = compute_bone_length(bone)
     k = 0.5  # Adjust this constant to scale the dynamic range as needed.
     
@@ -42,16 +41,6 @@ def compute_gyro_range(bone):
     return {"max_value": dynamic_range, "min_value": -dynamic_range} 
 
 def compute_servo_range(bone):
-    """
-    Computes a custom gyro range to the bone's length.
-    
-    Parameters:
-        bone: A Blender pose bone.
-        
-    Returns:
-        dict: A dictionary with keys "max_value" and "min_value".
-    """
-
     length = compute_bone_length(bone)
     k = 0.5  # Adjust this constant to scale the dynamic range as needed.
     
@@ -84,6 +73,27 @@ def get_all_armature_names():
                 armature_names.remove(metarig)
     return armature_names
 
+def check_capabilities_ranges(gyro_caps, servo_caps):
+    mismatch_found = False
+    for gyro_key in gyro_caps:
+        bone_index = int(gyro_key)
+        servo_key = str(bone_index * 3)
+        if servo_key in servo_caps:
+            servo_entry = servo_caps[servo_key]
+            servo_max_list = [servo_entry["max_value"]] * len(gyro_caps[gyro_key]["max_value"])
+            servo_min_list = [servo_entry["min_value"]] * len(gyro_caps[gyro_key]["min_value"])
+            if (gyro_caps[gyro_key]["max_value"] != servo_max_list or
+                gyro_caps[gyro_key]["min_value"] != servo_min_list):
+                print(f"Warning: Mismatch for bone '{gyro_caps[gyro_key]['custom_name']}' (gyro key {gyro_key}):")
+                print(f"  Gyro: max {gyro_caps[gyro_key]['max_value']}, min {gyro_caps[gyro_key]['min_value']}")
+                print(f"  Servo: max {servo_max_list}, min {servo_min_list}")
+                mismatch_found = True
+        else:
+            print(f"Warning: Servo entry for bone index {bone_index} not found.")
+            mismatch_found = True
+
+    if not mismatch_found:
+        print("all values match.")
 
 def generate_capabilities_json(armature_names, output_path):
     """
@@ -146,7 +156,7 @@ def generate_capabilities_json(armature_names, output_path):
                 # Temp workaround, TODO: Fix Feagi connector on gyro overlapping
                 # Create the input gyro capability for this axis of the bone.
                 gyro_capabilities[str(bone_index)] = {
-                    "custom_name": f"{bone.name}_RYP",  # same custom name for each axis.
+                    "custom_name": bone.name,  # same custom name for each axis.
                     "disabled": False,
                     "feagi_index": feagi_index_for_gyro,
                     "max_value": [gyro_range["max_value"], gyro_range["max_value"], gyro_range["max_value"]],
@@ -155,6 +165,8 @@ def generate_capabilities_json(armature_names, output_path):
             feagi_index_for_gyro += 3 # temp.....zzz
 
             cont_index+=1
+
+        check_capabilities_ranges(gyro_capabilities, servo_capabilities)
 
         # Insert our generated entries into the capabilities dictionary.
         capabilities["capabilities"]["input"]["gyro"].update(gyro_capabilities)
