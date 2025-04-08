@@ -89,7 +89,7 @@ def action(obtained_data):
 
     if 'reset' in obtained_data:
         for index in obtained_data['reset']:
-            starter.keyframe_full_armature("ClassicMan_Rigify", index)
+            starter.keyframe_selected_bones("ClassicMan_Rigify", index)
 
     if 'misc' in obtained_data:
         for x in obtained_data['misc']:
@@ -100,6 +100,9 @@ def action(obtained_data):
             # starter.print_keyframe(x)
             print("@@@@" * 10)
             starter.get_keyed_bones(x)
+            print("zzzzzzzzzzzz" * 10)
+            starter.print_keyframe(x)
+            print("!!!" * 10)
 
     if recieve_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
