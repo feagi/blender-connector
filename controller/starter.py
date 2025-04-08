@@ -1,6 +1,7 @@
 import bpy
 import os
 import sys
+from mathutils import Vector, Euler
 
 def clear_terminal():
     # Windows uses 'cls', macOS/Linux use 'clear'
@@ -506,11 +507,24 @@ def get_keyed_bones(current_frame = 0):
 
             bone_name = data_path.split('"')[1]
 
+            pose_bone = obj.pose.bones.get(bone_name)
+
             for kf in fcurve.keyframe_points:
                 if int(kf.co.x) == current_frame:
-                    if bone_name not in keyed_bones:
-                        keyed_bones[bone_name] = set()
-                    keyed_bones[bone_name].add(property_type)
+                    properties = set()
+                    if pose_bone.location != Vector((0,0,0)):
+                        properties.add("location")
+                    if pose_bone.rotation_euler != Euler((0,0,0)):
+                        if any(abs(a - b) > 1e-4 for a, b in zip(pose_bone.rotation_euler, Euler((0, 0, 0), pose_bone.rotation_mode))):
+                            properties.add("rotation_euler")
+                    if pose_bone.scale != Vector((1,1,1)):
+                        properties.add("scale")
+                    
+                    if properties:
+                        if bone_name not in keyed_bones:
+                            keyed_bones[bone_name] = set()
+                        keyed_bones[bone_name].update(properties)
+
 
         if keyed_bones:
             print(f"\nArmature: {obj.name}")
@@ -533,8 +547,9 @@ def main():
     # keyframe_selected_bones("ClassicMan_Rigify",20)
     # print_keyframe(20)
     # print_all_keyframes()
-    #bones = get_keyed_bones(20)
-    #print("\nReturned list of keyed bones:", bones)
+    # bones = get_keyed_bones(20)
+    # print("\nReturned list of keyed bones:", bones)
+
 
     # print(sys.executable)
 
