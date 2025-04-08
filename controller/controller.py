@@ -237,7 +237,7 @@ if __name__ == "__main__":
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        armature = bpy.data.objects.get("ClassicMan_Rigify")
+        armature = bpy.data.objects.get("XP_Jinx_Rig")
         if armature is None:
             return feagi_settings['feagi_burst_speed']
 
