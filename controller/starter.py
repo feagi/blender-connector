@@ -525,6 +525,7 @@ def get_keyed_bones(current_frame = 0):
                             keyed_bones[bone_name] = set()
                         keyed_bones[bone_name].update(properties)
 
+
         if keyed_bones:
             print(f"\nArmature: {obj.name}")
             for bone, props in keyed_bones.items():
@@ -548,6 +549,7 @@ def main():
     # print_all_keyframes()
     # bones = get_keyed_bones(20)
     # print("\nReturned list of keyed bones:", bones)
+
 
     # print(sys.executable)
 
