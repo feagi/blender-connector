@@ -516,27 +516,29 @@ def get_keyed_bones(current_frame = 0):
 
             for kf in fcurve.keyframe_points:
                 if int(kf.co.x) == current_frame:
-                    properties = set()
+                    properties = {}
                     if pose_bone.location != Vector((0,0,0)):
-                        properties.add("location")
+                        properties["location"] = pose_bone.location.copy()
                     if pose_bone.rotation_euler != Euler((0,0,0)):
                         if any(abs(a - b) > 1e-4 for a, b in zip(pose_bone.rotation_euler, Euler((0, 0, 0), pose_bone.rotation_mode))):
-                            properties.add("rotation_euler")
+                            properties["rotation_euler"] = pose_bone.rotation_euler.copy()
                     if pose_bone.scale != Vector((1,1,1)):
-                        properties.add("scale")
+                        properties["scale"] = pose_bone.scale.copy()
                     
                     if properties:
                         if bone_name not in keyed_bones:
-                            keyed_bones[bone_name] = set()
+                            keyed_bones[bone_name] = {}
                         keyed_bones[bone_name].update(properties)
-
 
         if keyed_bones:
             print(f"\nArmature: {obj.name}")
             for bone, props in keyed_bones.items():
                 print(f"  Bone: {bone}")
                 print(f"    Keyed: {', '.join(sorted(props))}")
+                for prop, value in props.items():
+                    print(f"    {prop}: {tuple(round(v, 4) for v in value)}")  # Rounded for cleaner output
             result.update(keyed_bones)
+                    
 
         return result
 
