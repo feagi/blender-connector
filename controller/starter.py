@@ -347,7 +347,7 @@ def keyframe_selected_bones(armature_name = "MyRig",current_frame = 0):
         print(f"Armature '{armature}' not found.")
         return
 
-    if armature_name.type != 'ARMATURE':
+    if armature.type != 'ARMATURE':
         print(f"'{armature}' is not an armature.")
         return
     
