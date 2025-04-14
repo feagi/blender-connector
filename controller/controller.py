@@ -89,6 +89,23 @@ def action(obtained_data):
     receive_servo_position_data = actuators.get_servo_position_data(obtained_data)
     selected_name = ""
 
+    if 'reset' in obtained_data:
+        for index in obtained_data['reset']:
+            starter.keyframe_selected_bones("ClassicMan_Rigify", index)
+
+    if 'misc' in obtained_data:
+        for x in obtained_data['misc']:
+            # if x == 0:
+            #     starter.print_all_keyframes()
+            # if x == 1:
+            #     starter.clear_armature_keyframe("ClassicMan_Rigify")
+            # starter.print_keyframe(x)
+            print("@@@@" * 10)
+            starter.get_keyed_bones(x)
+            print("zzzzzzzzzzzz" * 10)
+            starter.print_keyframe(x)
+            print("!!!" * 10)
+
     if receive_servo_position_data:
         # pass # output like {0:0.50, 1:0.20, 2:0.30} # example but the data comes from your capabilities' servo range
         for feagi_index in receive_servo_position_data:
@@ -206,6 +223,7 @@ if __name__ == "__main__":
         map_translation[feagi_index_int] = capabilities['output']['servo'][feagi_index]['custom_name']
 
     model_list = starter.get_name_and_update_index(get_all_armature_names())
+    # starter.clear_all_keyframes() # for testing purpose only
 
 
     def gather_gyro_data(armature):
