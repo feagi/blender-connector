@@ -178,7 +178,7 @@ if __name__ == "__main__":
     try:
         import starter
         from capabilities_gen import get_all_armature_names
-
+        print("Using starter.py from:", starter.__file__)
         importlib.reload(starter)  # reload from disk instead of using cached module
         importlib.reload(get_all_armature_names)
     except ImportError:
@@ -255,7 +255,7 @@ if __name__ == "__main__":
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        armature = bpy.data.objects.get("XP_Jinx_Rig")
+        armature = bpy.data.objects.get("ClassicMan_Rigify")
         if armature is None:
             return feagi_settings['feagi_burst_speed']
 
