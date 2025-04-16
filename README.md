@@ -114,3 +114,101 @@ Transforms multiple bones simultaneously in pose mode. Can specify **translation
 `keyframe` (bool) - If true sets a keyframe on `frame` for all transformed bones in function. If false keyframe will not be saved.
 
 **Returns**: None
+
+# FEAGI Blender Capabilities Generator
+
+This provides a way for Blender that automatically generates a `capabilities.json` file to map Blender armatures (bones) into sensor (`gyro`) and actuator (`servo`) entries for the FEAGI AI framework.
+
+---
+
+## Overview
+
+- **Automated JSON Generation**: Iterates through every bone in all detected armatures, automatically assigning each bone to either servo or gyro entries in the final configuration.
+- **Dynamic Range Computation**: Uses a function to compute bone length and derive min/max values for both servo and gyro capabilities.
+- **Multi-Armature Support**: If your Blender file contains multiple armatures, each one will be processed and merged into the same `capabilities.json`.
+- **Integrity Checks**: A built-in validation step (`check_capabilities_ranges`) ensures consistency between gyro and servo ranges, alerting you if entries do not match.
+
+---
+
+## Features
+
+1. **Per-Bone Gyro Assignment**  
+   - Only one gyro entry is created per bone, enabling sensors for real-time feedback in the FEAGI environment.
+
+2. **Per-Bone Servo Group**  
+   - Each bone receives three servo entries (one per axis), allowing granular motion control through FEAGI.
+
+3. **Automatic Indexing**  
+   - A global index (`cont_index`) increments for each bone, ensuring unique indices across multiple armatures.
+   - Gyro entries use the bone index as a key, while servo entries use `cont_index * 3 + axis`.
+
+4. **Range Checking**  
+   - After generating capabilities for each armature, the script runs `check_capabilities_ranges` to confirm that your gyro’s range aligns with at least one servo index (the first servo entry for each bone).
+
+---
+
+## Installation & Setup
+
+1. **Open Blender** and load your `.blend` file.
+2. **Load** the script (`capabilities_gen.py`) into Blender’s Text Editor.
+---
+
+## Usage
+
+1. **Run the Script**  
+   - In Blender’s Text Editor, press **Run Script**.
+2. **Output File**  
+   - The script writes a `capabilities.json` file to the same directory as your `.blend` file.  
+3. **Inspect Logs**  
+   - Check Blender’s console for any **mismatch** warnings or errors during range checks.
+
+---
+
+## Key Functions
+
+- **`compute_bone_length(bone)`**  
+  Calculates a bone’s length using the difference between its head and tail coordinates.
+
+- **`compute_gyro_range(bone)`**  
+  Returns a dictionary with `"max_value"` and `"min_value"` for the bone’s gyro, often calculated from the bone’s length.
+
+- **`compute_servo_range(bone)`**  
+  Similar to `compute_gyro_range`, but can be replaced with a fixed range if desired.
+
+- **`get_all_armature_names()`**  
+  Identifies all armatures in the scene, filtering out certain “metarig” entries if you’re using Rigify.
+
+- **`check_capabilities_ranges(gyro_caps, servo_caps)`**  
+  Compares each bone’s gyro data with its first servo entry (`bone_index * 3`), reporting mismatches.
+
+- **`generate_capabilities_json(armature_names, output_path)`**  
+  The main function. Iterates over each armature and every bone to populate servo and gyro data into the final `capabilities.json`.
+
+---
+
+## Indexing Scheme
+
+- **Gyro Entries**  
+  - One gyro entry per bone.  
+  - Key: `str(bone_index)` (resets per armature in the local dictionary, then merged into the global JSON).  
+
+- **Servo Entries**  
+  - Three servo entries per bone (one for each axis).  
+  - Keys: `str(cont_index * 3 + axis)`, where `cont_index` is incremented after each bone, ensuring unique servo indices across all armatures.
+
+---
+
+## Example Flow
+
+1. **Detect Armatures**  
+   - `get_all_armature_names()` collects the names.  
+2. **Loop Through Bones**  
+   - For each bone, compute its ranges using `compute_bone_length` → `compute_gyro_range` and `compute_servo_range`.  
+   - Write one gyro entry, three servo entries.  
+3. **Check Ranges**  
+   - For each bone, compare the first servo entry’s range to the gyro range.  
+   - Print a warning if they differ.  
+4. **Write JSON**  
+   - Merge all local armature dictionaries into one `capabilities.json`.
+
+---
