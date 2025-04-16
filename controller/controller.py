@@ -142,7 +142,6 @@ if __name__ == "__main__":
 
         # Get the RUN_ENV variable from the environment, defaulting to "local" if not set
         run_env = os.getenv("RUN_ENV", "local")
-        grab_api = os.getenv("API_KEY", "")
 
         # Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
         if run_env == "docker":
@@ -153,7 +152,6 @@ if __name__ == "__main__":
         # Optionally, override the value from the .env file
         # Or if you want to update the environment with this value:
         os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
-        print("HERE: ", grab_api)
 
         print("RUN_ENV:", run_env)
         print("Using FEAGI_OPU_PORT:", feagi_opu_port)
