@@ -142,6 +142,7 @@ if __name__ == "__main__":
 
         # Get the RUN_ENV variable from the environment, defaulting to "local" if not set
         run_env = os.getenv("RUN_ENV", "local")
+        grab_api = os.getenv("API_KEY", "")
 
         # Option 2: Decide the FEAGI_OPU_PORT based on RUN_ENV
         if run_env == "docker":
@@ -152,6 +153,7 @@ if __name__ == "__main__":
         # Optionally, override the value from the .env file
         # Or if you want to update the environment with this value:
         os.environ["FEAGI_OPU_PORT"] = feagi_opu_port
+        print("HERE: ", grab_api)
 
         print("RUN_ENV:", run_env)
         print("Using FEAGI_OPU_PORT:", feagi_opu_port)
@@ -208,7 +210,7 @@ if __name__ == "__main__":
     model_list = starter.get_name_and_update_index(get_all_armature_names())
 
 
-    def gather_gyro_data(armature):
+    def gather_gyro_data(armature, index):
         gyro_data = {}
         for idx, bone in enumerate(armature.pose.bones):
             # location_values = [bone.location[0], bone.location[1], bone.location[2]]  # Full (x, y, z) location this will goes to a different cortical area.
@@ -224,7 +226,7 @@ if __name__ == "__main__":
             # }
 
             # Assign this dictionary to the bone's index key (as a string)
-            gyro_data[str(idx)] = rotation_values
+            gyro_data[str(idx + index)] = rotation_values
         return gyro_data
 
 
@@ -237,11 +239,13 @@ if __name__ == "__main__":
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        armature = bpy.data.objects.get("XP_Jinx_Rig")
-        if armature is None:
-            return feagi_settings['feagi_burst_speed']
-
-        gyro_data = gather_gyro_data(armature)
+        gyro_data = {}
+        for name in model_list:
+            armature = bpy.data.objects.get(name)
+            if not gyro_data:
+                gyro_data = gather_gyro_data(armature, model_list[name][0])
+            else:
+                gyro_data.update(gather_gyro_data(armature, model_list[name][0]))
 
         # print("Data being sent to FEAGI (first 3 indexes):")
 
