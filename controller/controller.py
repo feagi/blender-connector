@@ -247,8 +247,6 @@ if __name__ == "__main__":
             else:
                 gyro_data.update(gather_gyro_data(armature, model_list[name][0]))
 
-        # print("Data being sent to FEAGI (first 3 indexes):")
-
         # the data should be "{'0': [x,y,z]} taken care of from gather_gyro_data"
         message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
                                                                current_data=gyro_data, symmetric=True,
