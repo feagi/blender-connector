@@ -13,6 +13,16 @@ Connect FEAGI with Blender to enable embodied AI controlling blender models.
 # Install python packages such as feagi_connector
 1) Run `lazy_pip.py` (Edit the package name if you want a different package.)
 
+# Run Blender Character on NeuroRobotics Studio  
+1) Clone the repository: `git clone git@github.com:feagi/blender-connector.git`  
+2) Drop your .blend character into the `blender-connector/controller` folder.  
+3) Open File Explorer and paste the following path into the address bar: `C:\Program Files\Blender Foundation\Blender 4.3\4.3\python\lib\site-packages\feagi_connector` (You must run `lazy_pop.py` once per installed Blender.)  
+4) Click on the address bar, type `cmd`, and press Enter to open the Command Prompt.  
+5) Copy and paste the command: `notepad .env`, then click Yes to create the file.  
+6) Go to the NeuroRobotics Studio experiment.  
+7) Click "Embodiment," then click the "API_KEY" button and paste it into the notepad file. Save the file.  
+8) Run `controller.py` inside Blender.
+
 ---
 ## Controller Methods
 
