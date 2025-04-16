@@ -178,7 +178,7 @@ if __name__ == "__main__":
     try:
         import starter
         from capabilities_gen import get_all_armature_names
-        print("Using starter.py from:", starter.__file__)
+        # print("Using starter.py from:", starter.__file__)
         importlib.reload(starter)  # reload from disk instead of using cached module
         importlib.reload(get_all_armature_names)
     except ImportError:
@@ -223,7 +223,7 @@ if __name__ == "__main__":
         map_translation[feagi_index_int] = capabilities['output']['servo'][feagi_index]['custom_name']
 
     model_list = starter.get_name_and_update_index(get_all_armature_names())
-    # starter.clear_all_keyframes() # for testing purpose only
+    starter.clear_all_keyframes() # for testing purpose only (or not?????)
 
 
     def gather_gyro_data(armature):

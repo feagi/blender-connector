@@ -448,6 +448,7 @@ def reset_armature(armature_name = "MyRig"):
         bpy.ops.object.mode_set(mode='POSE')         # switch to Pose Mode
         bpy.ops.pose.select_all(action='SELECT')     # select all bones
         bpy.ops.pose.transforms_clear()       # clear location, rotation, and scale
+        clear_armature_keyframe(armature_name)
         print(f"Pose reset to rest position for '{armature_name}'.")
     else:
         print("Armature not found")
@@ -462,36 +463,69 @@ def print_keyframe(current_frame = 0):
         action = obj.animation_data.action
         keyed_bones = {}
 
-        for fcurve in action.fcurves:
-            data_path = fcurve.data_path
-            property_type = get_property_type(data_path)
+        for bone in obj.pose.bones:
+            keyed_props = {}
 
-            if not property_type or '"' not in data_path:
-                continue
-
-            bone_name = data_path.split('"')[1]
-
-            for kf in fcurve.keyframe_points:
-                if int(kf.co.x) == current_frame:
-                    if bone_name not in keyed_bones:
-                        keyed_bones[bone_name] = set()
-                    keyed_bones[bone_name].add(property_type)
-
-        if keyed_bones:
-            print(f"\nArmature: {obj.name} \nAt keyframe on frame: {current_frame}")
-            for bone_name in keyed_bones:
-                bone = obj.pose.bones.get(bone_name)
-                if not bone:
+            # Gather keyed frames for this bone
+            for fcurve in action.fcurves:
+                if f'"{bone.name}"' not in fcurve.data_path:
                     continue
 
-                loc = bone.location
-                rot = bone.rotation_euler
-                scl = bone.scale
+                prop_type = None
+                if "location" in fcurve.data_path:
+                    prop_type = "location"
+                elif "rotation_euler" in fcurve.data_path:
+                    prop_type = "rotation_euler"
+                elif "scale" in fcurve.data_path:
+                    prop_type = "scale"
 
-                print(f"  Bone: {bone.name}")
-                print(f"    Location: ({loc.x:.3f}, {loc.y:.3f}, {loc.z:.3f})")
-                print(f"    Rotation (Euler): ({rot.x:.3f}, {rot.y:.3f}, {rot.z:.3f})")
-                print(f"    Scale: ({scl.x:.3f}, {scl.y:.3f}, {scl.z:.3f})")
+                if not prop_type:
+                    continue
+
+                prev_val = None
+                curr_val = None
+
+                for kf in sorted(fcurve.keyframe_points, key=lambda k: k.co.x):
+                    frame = int(kf.co.x)
+                    if frame < current_frame:
+                        prev_val = kf.co.y
+                    elif frame == current_frame:
+                        curr_val = kf.co.y
+                        break
+
+                if curr_val is not None:
+                    if prev_val is None:
+                        # Compare to rest pose
+                        rest_loc, rest_rot, rest_scl = bone.bone.matrix_local.decompose()
+                        if prop_type == "location":
+                            if (Vector(bone.location) - Vector(rest_loc)).length > 1e-4:
+                                keyed_props["location"] = bone.location.copy()
+                        elif prop_type == "rotation_euler":
+                            rest_rot_euler= rest_rot.to_euler('XYZ')
+                            if (Vector(bone.rotation_euler) - Vector(rest_rot_euler)).length > 1e-4:
+                                keyed_props["rotation_euler"] = bone.rotation_euler.copy()
+                        elif prop_type == "scale":
+                            if (Vector(bone.scale) - Vector(rest_scl)).length > 1e-4:
+                                keyed_props["scale"] = bone.scale.copy()
+                    elif abs(curr_val - prev_val) > 1e-4:
+                        if prop_type == "location":
+                            keyed_props["location"] = bone.location.copy()
+                        elif prop_type == "rotation_euler":
+                            keyed_props["rotation_euler"] = bone.rotation_euler.copy()
+                        elif prop_type == "scale":
+                            keyed_props["scale"] = bone.scale.copy()
+
+            if keyed_props:
+                keyed_bones[bone.name] = keyed_props
+
+        if keyed_bones:
+            print(f"\nArmature: {obj.name}  —  Frame {current_frame}")
+            for bone, props in keyed_bones.items():
+                print(f"  Bone: {bone}")
+                for prop, val in props.items():
+                    rounded = tuple(round(v, 4) for v in val)
+                    print(f"    {prop}: {rounded}")
+
 
 def get_keyed_bones(current_frame = 0):
     bpy.context.scene.frame_set(current_frame)
@@ -540,7 +574,7 @@ def get_keyed_bones(current_frame = 0):
             result.update(keyed_bones)
                     
 
-        return result
+    return result
 
 def get_name_and_update_index(armature_names):
     model_list = {}
