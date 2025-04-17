@@ -19,7 +19,7 @@ Connect FEAGI with Blender to enable embodied AI controlling blender models.
 3) Open File Explorer and paste the following path into the address bar: `C:\Program Files\Blender Foundation\Blender 4.3\4.3\python\lib\site-packages\feagi_connector` (You must run `lazy_pop.py` once per installed Blender.)  
 4) Click on the address bar, type `cmd`, and press Enter to open the Command Prompt.  
 5) Copy and paste the command: `notepad .env`, then click Yes to create the file.  
-6) Go to the NeuroRobotics Studio experiment.  
+6) Go to the NeuroRobotics Studio experiment.  (Quickest way: Click Blender > barebones genome > create your own name > launch)
 7) Click "Embodiment," then click the "API_KEY" button and paste it into the notepad file. Save the file.  
 8) Run `controller.py` inside Blender.
 
@@ -31,7 +31,6 @@ Connect FEAGI with Blender to enable embodied AI controlling blender models.
  Iteratively prints all non-armature objects in model to the console in the format `Object: object_name`. Prints all armature objects and their bones to the console in the format `Armature: armature_name` and `Bone: bone_name` respectively. \
 **Parameters**: none\
 **Returns**: None
-
 ---
 
 **`validate_connected_bone_movement(armature_name: str, curr_bone_name: str) -> list[Bone]`**
