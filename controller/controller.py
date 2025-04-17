@@ -208,7 +208,7 @@ if __name__ == "__main__":
     model_list = starter.get_name_and_update_index(get_all_armature_names())
 
 
-    def gather_gyro_data(armature):
+    def gather_gyro_data(armature, index):
         gyro_data = {}
         for idx, bone in enumerate(armature.pose.bones):
             # location_values = [bone.location[0], bone.location[1], bone.location[2]]  # Full (x, y, z) location this will goes to a different cortical area.
@@ -224,7 +224,7 @@ if __name__ == "__main__":
             # }
 
             # Assign this dictionary to the bone's index key (as a string)
-            gyro_data[str(idx)] = rotation_values
+            gyro_data[str(idx + index)] = rotation_values
         return gyro_data
 
 
@@ -237,13 +237,13 @@ if __name__ == "__main__":
             obtained_signals = pns.obtain_opu_data(message_from_feagi)
             action(obtained_signals)
 
-        armature = bpy.data.objects.get("XP_Jinx_Rig")
-        if armature is None:
-            return feagi_settings['feagi_burst_speed']
-
-        gyro_data = gather_gyro_data(armature)
-
-        # print("Data being sent to FEAGI (first 3 indexes):")
+        gyro_data = {}
+        for name in model_list:
+            armature = bpy.data.objects.get(name)
+            if not gyro_data:
+                gyro_data = gather_gyro_data(armature, model_list[name][0])
+            else:
+                gyro_data.update(gather_gyro_data(armature, model_list[name][0]))
 
         # the data should be "{'0': [x,y,z]} taken care of from gather_gyro_data"
         message_to_feagi_local = sensors.create_data_for_feagi('gyro', capabilities, message_to_feagi,
